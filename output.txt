@@ -1,0 +1,466 @@
+/home/bulby/Documents/GitHub/haskell-status/package.yaml: Duplicate field $.executables.haskell-status-exe.ghc-options
+haskell-status> build (exe)
+Preprocessing executable 'haskell-status-exe' for haskell-status-0.1.0.0..
+Building executable 'haskell-status-exe' for haskell-status-0.1.0.0..
+[ 6 of 10] Compiling Status.Config
+
+==================== Derived instances ====================
+Derived class instances:
+  instance (forall a. GHC.Base.Semigroup (f a)) =>
+           GHC.Base.Semigroup (Status.Config.BatterySettings' f) where
+    (GHC.Base.<>) ::
+      Status.Config.BatterySettings' f_a8kp
+      -> Status.Config.BatterySettings' f_a8kp
+      -> Status.Config.BatterySettings' f_a8kp
+    GHC.Base.sconcat ::
+      GHC.Base.NonEmpty (Status.Config.BatterySettings' f_a8kp)
+      -> Status.Config.BatterySettings' f_a8kp
+    GHC.Base.stimes ::
+      forall b.
+      GHC.Real.Integral b =>
+      b
+      -> Status.Config.BatterySettings' f_a8kp
+      -> Status.Config.BatterySettings' f_a8kp
+    (GHC.Base.<>)
+      = GHC.Prim.coerce
+          @(Generic.Data.Internal.Generically.Generically
+              (Status.Config.BatterySettings' f_a8kp)
+            -> Generic.Data.Internal.Generically.Generically
+                 (Status.Config.BatterySettings' f_a8kp)
+            -> Generic.Data.Internal.Generically.Generically
+                 (Status.Config.BatterySettings' f_a8kp))
+          @(Status.Config.BatterySettings' f_a8kp
+            -> Status.Config.BatterySettings' f_a8kp
+            -> Status.Config.BatterySettings' f_a8kp)
+          ((GHC.Base.<>)
+             @(Generic.Data.Internal.Generically.Generically
+                 (Status.Config.BatterySettings' f_a8kp)))
+    GHC.Base.sconcat
+      = GHC.Prim.coerce
+          @(GHC.Base.NonEmpty
+              (Generic.Data.Internal.Generically.Generically
+                 (Status.Config.BatterySettings' f_a8kp))
+            -> Generic.Data.Internal.Generically.Generically
+                 (Status.Config.BatterySettings' f_a8kp))
+          @(GHC.Base.NonEmpty (Status.Config.BatterySettings' f_a8kp)
+            -> Status.Config.BatterySettings' f_a8kp)
+          (GHC.Base.sconcat
+             @(Generic.Data.Internal.Generically.Generically
+                 (Status.Config.BatterySettings' f_a8kp)))
+    GHC.Base.stimes
+      = GHC.Prim.coerce
+          @(b_i8Ze
+            -> Generic.Data.Internal.Generically.Generically
+                 (Status.Config.BatterySettings' f_a8kp)
+            -> Generic.Data.Internal.Generically.Generically
+                 (Status.Config.BatterySettings' f_a8kp))
+          @(b_i8Ze
+            -> Status.Config.BatterySettings' f_a8kp
+            -> Status.Config.BatterySettings' f_a8kp)
+          (GHC.Base.stimes
+             @(Generic.Data.Internal.Generically.Generically
+                 (Status.Config.BatterySettings' f_a8kp)))
+  
+  instance GHC.Generics.Generic Status.Config.PartialSettings where
+    GHC.Generics.from x_a8Zh
+      = GHC.Generics.M1
+          (case x_a8Zh of {
+             Status.Config.PartialSettings g1_a8Zi g2_a8Zj g3_a8Zk g4_a8Zl
+               -> GHC.Generics.M1
+                    ((GHC.Generics.:*:)
+                       ((GHC.Generics.:*:)
+                          (GHC.Generics.M1 (GHC.Generics.K1 g1_a8Zi))
+                          (GHC.Generics.M1 (GHC.Generics.K1 g2_a8Zj)))
+                       ((GHC.Generics.:*:)
+                          (GHC.Generics.M1 (GHC.Generics.K1 g3_a8Zk))
+                          (GHC.Generics.M1 (GHC.Generics.K1 g4_a8Zl)))) })
+    GHC.Generics.to (GHC.Generics.M1 x_a8Zm)
+      = case x_a8Zm of {
+          (GHC.Generics.M1 ((GHC.Generics.:*:) ((GHC.Generics.:*:) (GHC.Generics.M1 (GHC.Generics.K1 g1_a8Zn))
+                                                                   (GHC.Generics.M1 (GHC.Generics.K1 g2_a8Zo)))
+                                               ((GHC.Generics.:*:) (GHC.Generics.M1 (GHC.Generics.K1 g3_a8Zp))
+                                                                   (GHC.Generics.M1 (GHC.Generics.K1 g4_a8Zq)))))
+            -> Status.Config.PartialSettings g1_a8Zn g2_a8Zo g3_a8Zp g4_a8Zq }
+  
+  instance GHC.Generics.Generic
+             (Status.Config.BatterySettings' f) where
+    GHC.Generics.from x_a8Zr
+      = GHC.Generics.M1
+          (case x_a8Zr of {
+             Status.Config.BatterySettings g1_a8Zs g2_a8Zt g3_a8Zu g4_a8Zv
+                                           g5_a8Zw g6_a8Zx g7_a8Zy g8_a8Zz g9_a8ZA
+               -> GHC.Generics.M1
+                    ((GHC.Generics.:*:)
+                       ((GHC.Generics.:*:)
+                          ((GHC.Generics.:*:)
+                             (GHC.Generics.M1 (GHC.Generics.K1 g1_a8Zs))
+                             (GHC.Generics.M1 (GHC.Generics.K1 g2_a8Zt)))
+                          ((GHC.Generics.:*:)
+                             (GHC.Generics.M1 (GHC.Generics.K1 g3_a8Zu))
+                             (GHC.Generics.M1 (GHC.Generics.K1 g4_a8Zv))))
+                       ((GHC.Generics.:*:)
+                          ((GHC.Generics.:*:)
+                             (GHC.Generics.M1 (GHC.Generics.K1 g5_a8Zw))
+                             (GHC.Generics.M1 (GHC.Generics.K1 g6_a8Zx)))
+                          ((GHC.Generics.:*:)
+                             (GHC.Generics.M1 (GHC.Generics.K1 g7_a8Zy))
+                             ((GHC.Generics.:*:)
+                                (GHC.Generics.M1 (GHC.Generics.K1 g8_a8Zz))
+                                (GHC.Generics.M1 (GHC.Generics.K1 g9_a8ZA)))))) })
+    GHC.Generics.to (GHC.Generics.M1 x_a8ZB)
+      = case x_a8ZB of {
+          (GHC.Generics.M1 ((GHC.Generics.:*:) ((GHC.Generics.:*:) ((GHC.Generics.:*:) (GHC.Generics.M1 (GHC.Generics.K1 g1_a8ZC))
+                                                                                       (GHC.Generics.M1 (GHC.Generics.K1 g2_a8ZD)))
+                                                                   ((GHC.Generics.:*:) (GHC.Generics.M1 (GHC.Generics.K1 g3_a8ZE))
+                                                                                       (GHC.Generics.M1 (GHC.Generics.K1 g4_a8ZF))))
+                                               ((GHC.Generics.:*:) ((GHC.Generics.:*:) (GHC.Generics.M1 (GHC.Generics.K1 g5_a8ZG))
+                                                                                       (GHC.Generics.M1 (GHC.Generics.K1 g6_a8ZH)))
+                                                                   ((GHC.Generics.:*:) (GHC.Generics.M1 (GHC.Generics.K1 g7_a8ZI))
+                                                                                       ((GHC.Generics.:*:) (GHC.Generics.M1 (GHC.Generics.K1 g8_a8ZJ))
+                                                                                                           (GHC.Generics.M1 (GHC.Generics.K1 g9_a8ZK)))))))
+            -> Status.Config.BatterySettings
+                 g1_a8ZC g2_a8ZD g3_a8ZE g4_a8ZF g5_a8ZG g6_a8ZH g7_a8ZI g8_a8ZJ
+                 g9_a8ZK }
+  
+  instance GHC.Enum.Enum Status.Config.MemoryCalcMethod where
+    GHC.Enum.succ a_a8ZL
+      = case ($con2tag_MemoryCalcMethod_a8qA a_a8ZL) of {
+          a#_a8ZM
+            -> if (GHC.Classes.==)
+                    $maxtag_MemoryCalcMethod_a8qC (GHC.Types.I# a#_a8ZM) then
+                   GHC.Err.error
+                     "succ{MemoryCalcMethod}: tried to take `succ' of last tag in enumeration"
+               else
+                   $tag2con_MemoryCalcMethod_a8qB
+                     ((GHC.Num.+) (GHC.Types.I# a#_a8ZM) 1) }
+    GHC.Enum.pred a_a8ZN
+      = case ($con2tag_MemoryCalcMethod_a8qA a_a8ZN) of {
+          a#_a8ZO
+            -> if (GHC.Classes.==) 0 (GHC.Types.I# a#_a8ZO) then
+                   GHC.Err.error
+                     "pred{MemoryCalcMethod}: tried to take `pred' of first tag in enumeration"
+               else
+                   $tag2con_MemoryCalcMethod_a8qB
+                     ((GHC.Num.+) (GHC.Types.I# a#_a8ZO) (-1)) }
+    GHC.Enum.toEnum a_a8ZP
+      = if (GHC.Classes.&&)
+             ((GHC.Classes.>=) a_a8ZP 0)
+             ((GHC.Classes.<=) a_a8ZP $maxtag_MemoryCalcMethod_a8qC) then
+            $tag2con_MemoryCalcMethod_a8qB a_a8ZP
+        else
+            GHC.Err.error
+              ((GHC.Base.++)
+                 "toEnum{MemoryCalcMethod}: tag ("
+                 (GHC.Show.showsPrec
+                    0 a_a8ZP
+                    ((GHC.Base.++)
+                       ") is outside of enumeration's range (0,"
+                       (GHC.Show.showsPrec 0 $maxtag_MemoryCalcMethod_a8qC ")"))))
+    GHC.Enum.enumFrom a_a8ZQ
+      = case ($con2tag_MemoryCalcMethod_a8qA a_a8ZQ) of {
+          a#_a8ZR
+            -> GHC.Base.map
+                 $tag2con_MemoryCalcMethod_a8qB
+                 (GHC.Enum.enumFromTo
+                    (GHC.Types.I# a#_a8ZR) $maxtag_MemoryCalcMethod_a8qC) }
+    GHC.Enum.enumFromThen a_a8ZS b_a8ZT
+      = case ($con2tag_MemoryCalcMethod_a8qA a_a8ZS) of {
+          a#_a8ZU
+            -> case ($con2tag_MemoryCalcMethod_a8qA b_a8ZT) of {
+                 b#_a8ZV
+                   -> GHC.Base.map
+                        $tag2con_MemoryCalcMethod_a8qB
+                        (GHC.Enum.enumFromThenTo
+                           (GHC.Types.I# a#_a8ZU) (GHC.Types.I# b#_a8ZV)
+                           (if (GHC.Classes.>)
+                                 (GHC.Types.I# a#_a8ZU) (GHC.Types.I# b#_a8ZV) then
+                                0
+                            else
+                                $maxtag_MemoryCalcMethod_a8qC)) } }
+    GHC.Enum.fromEnum a_a8ZW
+      = case ($con2tag_MemoryCalcMethod_a8qA a_a8ZW) of {
+          a#_a8ZX -> GHC.Types.I# a#_a8ZX }
+  
+  instance GHC.Enum.Bounded Status.Config.MemoryCalcMethod where
+    GHC.Enum.minBound = Status.Config.MemAvailable
+    GHC.Enum.maxBound = Status.Config.Classical
+  
+  $con2tag_MemoryCalcMethod_a8qA ::
+    Status.Config.MemoryCalcMethod -> GHC.Prim.Int#
+  $tag2con_MemoryCalcMethod_a8qB ::
+    GHC.Types.Int -> Status.Config.MemoryCalcMethod
+  $maxtag_MemoryCalcMethod_a8qC :: GHC.Types.Int
+  $maxtag_MemoryCalcMethod_a8qC = GHC.Types.I# 1#
+  $tag2con_MemoryCalcMethod_a8qB (GHC.Types.I# a_a8Zb)
+    = GHC.Prim.tagToEnum# a_a8Zb
+  $con2tag_MemoryCalcMethod_a8qA Status.Config.MemAvailable = 0#
+  $con2tag_MemoryCalcMethod_a8qA Status.Config.Classical = 1#
+
+Derived type family instances:
+  type GHC.Generics.Rep
+         Status.Config.PartialSettings = GHC.Generics.D1
+                                           ('GHC.Generics.MetaData
+                                              "PartialSettings"
+                                              "Status.Config"
+                                              "main"
+                                              'GHC.Types.False)
+                                           (GHC.Generics.C1
+                                              ('GHC.Generics.MetaCons
+                                                 "PartialSettings"
+                                                 'GHC.Generics.PrefixI
+                                                 'GHC.Types.True)
+                                              ((GHC.Generics.S1
+                                                  ('GHC.Generics.MetaSel
+                                                     ('GHC.Maybe.Just "settingsBattery")
+                                                     'GHC.Generics.NoSourceUnpackedness
+                                                     'GHC.Generics.SourceStrict
+                                                     'GHC.Generics.DecidedStrict)
+                                                  (GHC.Generics.Rec0
+                                                     Status.Config.PartialBatterySettings)
+                                                GHC.Generics.:*: GHC.Generics.S1
+                                                                   ('GHC.Generics.MetaSel
+                                                                      ('GHC.Maybe.Just
+                                                                         "settingsCpu")
+                                                                      'GHC.Generics.NoSourceUnpackedness
+                                                                      'GHC.Generics.SourceStrict
+                                                                      'GHC.Generics.DecidedStrict)
+                                                                   (GHC.Generics.Rec0
+                                                                      Status.Config.PartialCPUSettings))
+                                               GHC.Generics.:*: (GHC.Generics.S1
+                                                                   ('GHC.Generics.MetaSel
+                                                                      ('GHC.Maybe.Just
+                                                                         "settingsMemory")
+                                                                      'GHC.Generics.NoSourceUnpackedness
+                                                                      'GHC.Generics.SourceStrict
+                                                                      'GHC.Generics.DecidedStrict)
+                                                                   (GHC.Generics.Rec0
+                                                                      Status.Config.PartialMemorySettings)
+                                                                 GHC.Generics.:*: GHC.Generics.S1
+                                                                                    ('GHC.Generics.MetaSel
+                                                                                       ('GHC.Maybe.Just
+                                                                                          "settingsWireless")
+                                                                                       'GHC.Generics.NoSourceUnpackedness
+                                                                                       'GHC.Generics.SourceStrict
+                                                                                       'GHC.Generics.DecidedStrict)
+                                                                                    (GHC.Generics.Rec0
+                                                                                       Status.Config.PartialWirelessSettings))))
+  type GHC.Generics.Rep
+         (Status.Config.BatterySettings' f_a8qz) = GHC.Generics.D1
+                                                     ('GHC.Generics.MetaData
+                                                        "BatterySettings'"
+                                                        "Status.Config"
+                                                        "main"
+                                                        'GHC.Types.False)
+                                                     (GHC.Generics.C1
+                                                        ('GHC.Generics.MetaCons
+                                                           "BatterySettings"
+                                                           'GHC.Generics.PrefixI
+                                                           'GHC.Types.True)
+                                                        (((GHC.Generics.S1
+                                                             ('GHC.Generics.MetaSel
+                                                                ('GHC.Maybe.Just "batteryFormat")
+                                                                'GHC.Generics.NoSourceUnpackedness
+                                                                'GHC.Generics.NoSourceStrictness
+                                                                'GHC.Generics.DecidedLazy)
+                                                             (GHC.Generics.Rec0
+                                                                (Status.Config.HKD
+                                                                   f_a8qz GHC.Base.String))
+                                                           GHC.Generics.:*: GHC.Generics.S1
+                                                                              ('GHC.Generics.MetaSel
+                                                                                 ('GHC.Maybe.Just
+                                                                                    "batteryFormatDown")
+                                                                                 'GHC.Generics.NoSourceUnpackedness
+                                                                                 'GHC.Generics.NoSourceStrictness
+                                                                                 'GHC.Generics.DecidedLazy)
+                                                                              (GHC.Generics.Rec0
+                                                                                 (Status.Config.HKD
+                                                                                    f_a8qz
+                                                                                    GHC.Base.String)))
+                                                          GHC.Generics.:*: (GHC.Generics.S1
+                                                                              ('GHC.Generics.MetaSel
+                                                                                 ('GHC.Maybe.Just
+                                                                                    "batteryFormatRoundTo")
+                                                                                 'GHC.Generics.NoSourceUnpackedness
+                                                                                 'GHC.Generics.NoSourceStrictness
+                                                                                 'GHC.Generics.DecidedLazy)
+                                                                              (GHC.Generics.Rec0
+                                                                                 (Status.Config.HKD
+                                                                                    f_a8qz
+                                                                                    GHC.Types.Int))
+                                                                            GHC.Generics.:*: GHC.Generics.S1
+                                                                                               ('GHC.Generics.MetaSel
+                                                                                                  ('GHC.Maybe.Just
+                                                                                                     "batteryUseLast")
+                                                                                                  'GHC.Generics.NoSourceUnpackedness
+                                                                                                  'GHC.Generics.NoSourceStrictness
+                                                                                                  'GHC.Generics.DecidedLazy)
+                                                                                               (GHC.Generics.Rec0
+                                                                                                  (Status.Config.HKD
+                                                                                                     f_a8qz
+                                                                                                     GHC.Types.Bool))))
+                                                         GHC.Generics.:*: ((GHC.Generics.S1
+                                                                              ('GHC.Generics.MetaSel
+                                                                                 ('GHC.Maybe.Just
+                                                                                    "batteryStatusCharge")
+                                                                                 'GHC.Generics.NoSourceUnpackedness
+                                                                                 'GHC.Generics.NoSourceStrictness
+                                                                                 'GHC.Generics.DecidedLazy)
+                                                                              (GHC.Generics.Rec0
+                                                                                 (Status.Config.HKD
+                                                                                    f_a8qz
+                                                                                    GHC.Base.String))
+                                                                            GHC.Generics.:*: GHC.Generics.S1
+                                                                                               ('GHC.Generics.MetaSel
+                                                                                                  ('GHC.Maybe.Just
+                                                                                                     "batteryStatusDischarge")
+                                                                                                  'GHC.Generics.NoSourceUnpackedness
+                                                                                                  'GHC.Generics.NoSourceStrictness
+                                                                                                  'GHC.Generics.DecidedLazy)
+                                                                                               (GHC.Generics.Rec0
+                                                                                                  (Status.Config.HKD
+                                                                                                     f_a8qz
+                                                                                                     GHC.Base.String)))
+                                                                           GHC.Generics.:*: (GHC.Generics.S1
+                                                                                               ('GHC.Generics.MetaSel
+                                                                                                  ('GHC.Maybe.Just
+                                                                                                     "batteryStatusFull")
+                                                                                                  'GHC.Generics.NoSourceUnpackedness
+                                                                                                  'GHC.Generics.NoSourceStrictness
+                                                                                                  'GHC.Generics.DecidedLazy)
+                                                                                               (GHC.Generics.Rec0
+                                                                                                  (Status.Config.HKD
+                                                                                                     f_a8qz
+                                                                                                     GHC.Base.String))
+                                                                                             GHC.Generics.:*: (GHC.Generics.S1
+                                                                                                                 ('GHC.Generics.MetaSel
+                                                                                                                    ('GHC.Maybe.Just
+                                                                                                                       "batteryStatusUnk")
+                                                                                                                    'GHC.Generics.NoSourceUnpackedness
+                                                                                                                    'GHC.Generics.NoSourceStrictness
+                                                                                                                    'GHC.Generics.DecidedLazy)
+                                                                                                                 (GHC.Generics.Rec0
+                                                                                                                    (Status.Config.HKD
+                                                                                                                       f_a8qz
+                                                                                                                       GHC.Base.String))
+                                                                                                               GHC.Generics.:*: GHC.Generics.S1
+                                                                                                                                  ('GHC.Generics.MetaSel
+                                                                                                                                     ('GHC.Maybe.Just
+                                                                                                                                        "batteryPath")
+                                                                                                                                     'GHC.Generics.NoSourceUnpackedness
+                                                                                                                                     'GHC.Generics.NoSourceStrictness
+                                                                                                                                     'GHC.Generics.DecidedLazy)
+                                                                                                                                  (GHC.Generics.Rec0
+                                                                                                                                     (Status.Config.HKD
+                                                                                                                                        f_a8qz
+                                                                                                                                        GHC.Base.String)))))))
+
+
+
+==================== Filling in method body ====================
+GHC.Enum.Enum [Status.Config.MemoryCalcMethod]
+  GHC.Enum.enumFromTo = GHC.Enum.$dmenumFromTo
+                          @(Status.Config.MemoryCalcMethod)
+
+
+
+==================== Filling in method body ====================
+GHC.Enum.Enum [Status.Config.MemoryCalcMethod]
+  GHC.Enum.enumFromThenTo = GHC.Enum.$dmenumFromThenTo
+                              @(Status.Config.MemoryCalcMethod)
+
+
+
+/home/bulby/Documents/GitHub/haskell-status/app/Status/Config.hs:47:1: error:
+    • Could not deduce (Semigroup (HKD f String))
+        arising from a use of ‘<>’
+      from the context: forall a. Semigroup (f a)
+        bound by the instance declaration at app/Status/Config.hs:47:1-118
+    • In the third argument of ‘ghc-prim-0.7.0:GHC.Prim.coerce’, namely
+        ‘((<>) @(Generically (BatterySettings' f)))’
+      In the expression:
+        ghc-prim-0.7.0:GHC.Prim.coerce
+          @(Generically (BatterySettings' f)
+            -> Generically (BatterySettings' f)
+            -> Generically (BatterySettings' f))
+          @(BatterySettings' f -> BatterySettings' f -> BatterySettings' f)
+          ((<>) @(Generically (BatterySettings' f)))
+      In an equation for ‘<>’:
+          (<>)
+            = ghc-prim-0.7.0:GHC.Prim.coerce
+                @(Generically (BatterySettings' f)
+                  -> Generically (BatterySettings' f)
+                  -> Generically (BatterySettings' f))
+                @(BatterySettings' f -> BatterySettings' f -> BatterySettings' f)
+                ((<>) @(Generically (BatterySettings' f)))
+      When typechecking the code for ‘<>’
+        in a derived instance for ‘Semigroup (BatterySettings' f)’:
+        To see the code I am typechecking, use -ddump-deriv
+   |
+47 | deriving via (Generically (BatterySettings' f)) instance (forall a. Semigroup (f a)) => Semigroup (BatterySettings' f)
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/home/bulby/Documents/GitHub/haskell-status/app/Status/Config.hs:47:1: error:
+    • Could not deduce (Semigroup (HKD f String))
+        arising from a use of ‘GHC.Base.sconcat’
+      from the context: forall a. Semigroup (f a)
+        bound by the instance declaration at app/Status/Config.hs:47:1-118
+    • In the third argument of ‘ghc-prim-0.7.0:GHC.Prim.coerce’, namely
+        ‘(GHC.Base.sconcat @(Generically (BatterySettings' f)))’
+      In the expression:
+        ghc-prim-0.7.0:GHC.Prim.coerce
+          @(GHC.Base.NonEmpty (Generically (BatterySettings' f))
+            -> Generically (BatterySettings' f))
+          @(GHC.Base.NonEmpty (BatterySettings' f) -> BatterySettings' f)
+          (GHC.Base.sconcat @(Generically (BatterySettings' f)))
+      In an equation for ‘GHC.Base.sconcat’:
+          GHC.Base.sconcat
+            = ghc-prim-0.7.0:GHC.Prim.coerce
+                @(GHC.Base.NonEmpty (Generically (BatterySettings' f))
+                  -> Generically (BatterySettings' f))
+                @(GHC.Base.NonEmpty (BatterySettings' f) -> BatterySettings' f)
+                (GHC.Base.sconcat @(Generically (BatterySettings' f)))
+      When typechecking the code for ‘GHC.Base.sconcat’
+        in a derived instance for ‘Semigroup (BatterySettings' f)’:
+        To see the code I am typechecking, use -ddump-deriv
+   |
+47 | deriving via (Generically (BatterySettings' f)) instance (forall a. Semigroup (f a)) => Semigroup (BatterySettings' f)
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/home/bulby/Documents/GitHub/haskell-status/app/Status/Config.hs:47:1: error:
+    • Could not deduce (Semigroup (HKD f String))
+        arising from a use of ‘GHC.Base.stimes’
+      from the context: forall a. Semigroup (f a)
+        bound by the instance declaration at app/Status/Config.hs:47:1-118
+      or from: Integral b
+        bound by the type signature for:
+                   GHC.Base.stimes :: forall b.
+                                      Integral b =>
+                                      b -> BatterySettings' f -> BatterySettings' f
+        at app/Status/Config.hs:47:1-118
+    • In the third argument of ‘ghc-prim-0.7.0:GHC.Prim.coerce’, namely
+        ‘(GHC.Base.stimes @(Generically (BatterySettings' f)))’
+      In the expression:
+        ghc-prim-0.7.0:GHC.Prim.coerce
+          @(b
+            -> Generically (BatterySettings' f)
+            -> Generically (BatterySettings' f))
+          @(b -> BatterySettings' f -> BatterySettings' f)
+          (GHC.Base.stimes @(Generically (BatterySettings' f)))
+      In an equation for ‘GHC.Base.stimes’:
+          GHC.Base.stimes
+            = ghc-prim-0.7.0:GHC.Prim.coerce
+                @(b
+                  -> Generically (BatterySettings' f)
+                  -> Generically (BatterySettings' f))
+                @(b -> BatterySettings' f -> BatterySettings' f)
+                (GHC.Base.stimes @(Generically (BatterySettings' f)))
+      When typechecking the code for ‘GHC.Base.stimes’
+        in a derived instance for ‘Semigroup (BatterySettings' f)’:
+        To see the code I am typechecking, use -ddump-deriv
+   |
+47 | deriving via (Generically (BatterySettings' f)) instance (forall a. Semigroup (f a)) => Semigroup (BatterySettings' f)
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+--  While building package haskell-status-0.1.0.0 (scroll up to its section to see the error) using:
+      /home/bulby/.stack/setup-exe-cache/x86_64-linux-tinfo6/Cabal-simple_mPHDZzAJ_3.4.1.0_ghc-9.0.2 --builddir=.stack-work/dist/x86_64-linux-tinfo6/Cabal-3.4.1.0 build exe:haskell-status-exe --ghc-options ""
+    Process exited with code: ExitFailure 1
