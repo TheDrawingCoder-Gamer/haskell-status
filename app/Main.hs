@@ -11,7 +11,7 @@ import Data.List (find)
 import Data.Bifunctor qualified as BFu
 import Data.Char (isDigit)
 import Control.Monad (forever) 
-import Control.Concurrent (threadDelay, forkIO)
+import Control.Concurrent (threadDelay, forkIO, forkFinally)
 import System.IO (hSetBuffering, stdout, BufferMode(LineBuffering))
 import Status.Plugins.BatteryInfo
 import Status.Plugins.CpuInfo
@@ -36,10 +36,11 @@ main =
         hSetBuffering stdout LineBuffering
         case config' of 
             Right config -> 
-                do 
+                do
+                    deadMansMVar <- newEmptyMVar 
                     goodMvar <- newMVar (SysInfo "" "" "" "" "" "")
-                    forkIO (timerThread config goodMvar)
-                    pure ()
+                    forkFinally (timerThread config goodMvar) (\_ -> putMVar deadMansMVar ())
+                    takeMVar deadMansMVar
             Left config -> 
                 print config
 formatGeneral :: F.Format -> String -> String -> String -> String -> String -> String -> String
