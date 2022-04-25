@@ -12,7 +12,7 @@ import Data.Bifunctor qualified as BFu
 import Data.Char (isDigit)
 import Control.Monad (forever) 
 import Control.Concurrent (threadDelay, forkIO, forkFinally)
-import System.IO (hSetBuffering, stdout, BufferMode(LineBuffering))
+import System.IO (hSetBuffering, stdout, BufferMode(LineBuffering), Handle, hGetContents)
 import Status.Plugins.BatteryInfo
 import Status.Plugins.CpuInfo
 import Status.Plugins.MemInfo
@@ -28,6 +28,7 @@ import Data.String
 import Data.Text qualified as T
 import Control.Concurrent.MVar
 import Data.Bool (bool)
+import System.INotify
 main :: IO ()
 main =
     do
@@ -40,11 +41,17 @@ main =
                     deadMansMVar <- newEmptyMVar 
                     goodMvar <- newMVar (SysInfo "" "" "" "" "" "")
                     forkFinally (timerThread config goodMvar) (\_ -> putMVar deadMansMVar ())
+                    
+                    forkIO (watchFIFO config goodMvar (\conf mvar d ->
+                        do 
+                            foo@(SysInfo mmem mcpu mbat mwi mclc maux) <- takeMVar mvar
+                            putMVar foo
+                        ))
                     takeMVar deadMansMVar
             Left config -> 
                 print config
-formatGeneral :: F.Format -> String -> String -> String -> String -> String -> String -> String
-formatGeneral format cpuinfo meminfo batteryinfo wirelessinfo clockinfo audioinfo = 
+formatGeneral :: F.Format -> SysInfo -> String
+formatGeneral format (SysInfo meminfo cpuinfo batteryinfo wirelessinfo clockinfo audioinfo) = 
     format 
     ~~ ("cpu" ~% cpuinfo) 
     ~~ ("memory" ~% meminfo) 
@@ -68,11 +75,21 @@ printInfo config mvar (SysInfoMask bmem bcpu bbat bwi bclc baux) =
             wirelessinfo <- bool (getDisplayWirelessInfo config) (pure mwi) bwi 
             clockinfo <- bool (getTime config) (pure mclc) bclc  
             audioinfo <- bool (getAudioStr config) (pure maux) baux
-            putMVar mvar (SysInfo meminfo cpuinfo batteryinfo wirelessinfo clockinfo audioinfo) 
-            putStrLn $ formatGeneral format cpuinfo meminfo batteryinfo wirelessinfo clockinfo audioinfo 
+            let sysinfo =  SysInfo meminfo cpuinfo batteryinfo wirelessinfo clockinfo audioinfo
+            putMVar mvar sysinfo
+            putStrLn $ formatGeneral format sysinfo 
 timerThread :: Settings -> MVar SysInfo -> IO ()
 timerThread config mvar = 
     forever $ do 
         printInfo config mvar (SysInfoMask False False False False False False)
         threadDelay 5000000
+
+watchFile config mvar path cb = do 
+    inotify <- initINotify 
+    addWatch inotify [Modify] (fromString path) (cb config mvar)
+
+watchFIFO :: Settings -> MVar SysInfo -> Handle -> (Settings -> MVar SysInfo -> String -> IO ())
+watchFIFO config mvar handle cb = forever $ do 
+    input <- hGetContents handle 
+    cb config mvar input 
 

@@ -73,3 +73,5 @@ executables:
       - polysemy
       - lens
       - aeson
+      - hinotify 
+

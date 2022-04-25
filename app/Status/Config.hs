@@ -57,6 +57,7 @@ data Settings' f = Settings
     , settingsWireless :: !(WirelessSettings' f)
     , settingsClock :: !(ClockSettings f)
     , settingsAudio :: !(AudioSettings' f)
+    , settingsFifo :: ![FIFOSettings' f]
     } deriving Generic
 deriving via (Generically (Settings' f)) instance (Constraints (Settings' f) Semigroup) => Semigroup (Settings' f)
 deriving instance (Constraints (Settings' f) Show) => Show (Settings' f)
@@ -132,6 +133,15 @@ deriving instance (Constraints (AudioSettings' f) Show) => Show (AudioSettings' 
 
 type AudioSettings = AudioSettings' Identity 
 type PartialAudioSettings = AudioSettings' Last
+
+data FIFOSettings' f = FIFOSettings
+    { fifoPath  :: HKD f T.Text 
+    , fifoFormat :: HKD f T.Text } deriving stock Generic
+deriving via (TomlTableStripDot (FIFOSettings' f) "fifo") instance (Constraints (FIFOSettings' f) Toml.HasCodec, Typeable f) => Toml.HasCodec (FIFOSettings' f)
+deriving via (TomlTableStripDot (FIFOSettings' f) "fifo") instance (Constraints (FIFOSettings' f) Toml.HasCodec, Constraints (FIFOSettings' f) Toml.HasItemCodec, Typeable f) => Toml.HasItemCodec (FIFOSettings' f)
+deriving instance (Constraints (FIFOSettings' f) Show) => Show (FIFOSettings' f)
+deriving via (Generically (FIFOSettings' f)) instance (Constraints (FIFOSettings' f) Semigroup) => Semigroup (FIFOSettings' f)
+
 settingsCodec :: TomlCodec PartialSettings
 settingsCodec = Toml.stripTypeNameCodec
 
@@ -177,6 +187,8 @@ instance (Generic a, Toml.GenericCodec (Rep a), KnownSymbol s, Typeable a) => To
     hasCodec = Toml.diwrap . Toml.table (prefixStripperCodec (Proxy @s) :: Toml.TomlCodec a)
 instance (Generic a, Toml.GenericCodec (Rep a), KnownSymbol s, Typeable a) => Toml.HasCodec (TomlTableStripDot a s) where 
     hasCodec = Toml.diwrap . Toml.table (dotPrefixStripCodec (Proxy @s) ::Toml.TomlCodec a)
+instance (Generic a, Toml.GenericCodec (Rep a), KnownSymbol s, Typeable a) => Toml.HasItemCodec (TomlTableStripDot a s) where 
+    hasItemCodec = Right $ Toml.diwrap (dotPrefixStripCodec (Proxy @s) :: Toml.TomlCodec a)
 prefixStripper :: forall s a. (KnownSymbol s, Typeable a) => Proxy s -> Proxy a -> String -> String 
 prefixStripper sym _ inp =
     let 

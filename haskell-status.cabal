@@ -70,6 +70,7 @@ executable haskell-status-exe
     , extra
     , generic-data
     , hformat
+    , hinotify
     , lens
     , netlink >=1.1.1.0
     , network-info
