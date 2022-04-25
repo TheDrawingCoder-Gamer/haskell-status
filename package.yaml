@@ -74,4 +74,5 @@ executables:
       - lens
       - aeson
       - hinotify 
-
+      - unordered-containers
+      - async

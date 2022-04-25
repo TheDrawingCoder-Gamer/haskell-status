@@ -35,11 +35,11 @@ import Toml (TomlCodec, (.=))
 import Status.Units
 import qualified Toml
 import System.Environment
-import Data.Maybe (fromJust)
+import Data.Maybe (fromJust, mapMaybe, catMaybes,isNothing,isJust)
 import Data.Monoid (Last(..))
 import Data.Functor.Identity 
 import Generic.Data (Generic, Generically(..))
-import Data.List (isPrefixOf) 
+import Data.List (isPrefixOf,find) 
 import Data.Text qualified as T
 import Data.Typeable (Typeable, Proxy(..))
 import Data.Kind (Type)
@@ -48,7 +48,25 @@ import GHC.Generics (Rep)
 import GHC.Generics qualified as G
 import Data.Char (toLower, isLower)
 import Control.Category qualified as C
+import Data.HashMap.Strict qualified as HM
 import Generics.OneLiner (Constraints)
+data SystemInfo = SystemInfo
+    { sysinfBattery  :: Maybe String 
+    , sysinfCpu      :: Maybe String 
+    , sysinfMemory   :: Maybe String 
+    , sysinfWireless :: Maybe String
+    , sysinfClock    :: Maybe String 
+    , sysinfAudio    :: Maybe String 
+    , sysinfFifo     :: HM.HashMap String String
+    } 
+data SystemMask = SystemMask 
+    { sysmaskBattery  :: Bool 
+    , sysmaskCpu      :: Bool
+    , sysmaskMemory   :: Bool
+    , sysmaskWireless :: Bool 
+    , sysmaskClock    :: Bool 
+    , sysmaskAudio    :: Bool 
+    , sysmaskFifo     :: HM.HashMap String Bool }
 data Settings' f = Settings
     { settingsFormat :: HKD f T.Text
     , settingsBattery :: !(BatterySettings' f)
@@ -57,7 +75,7 @@ data Settings' f = Settings
     , settingsWireless :: !(WirelessSettings' f)
     , settingsClock :: !(ClockSettings f)
     , settingsAudio :: !(AudioSettings' f)
-    , settingsFifo :: ![FIFOSettings' f]
+    , settingsFifo :: ![FIFOSettings]
     } deriving Generic
 deriving via (Generically (Settings' f)) instance (Constraints (Settings' f) Semigroup) => Semigroup (Settings' f)
 deriving instance (Constraints (Settings' f) Show) => Show (Settings' f)
@@ -134,13 +152,14 @@ deriving instance (Constraints (AudioSettings' f) Show) => Show (AudioSettings' 
 type AudioSettings = AudioSettings' Identity 
 type PartialAudioSettings = AudioSettings' Last
 
-data FIFOSettings' f = FIFOSettings
-    { fifoPath  :: HKD f T.Text 
-    , fifoFormat :: HKD f T.Text } deriving stock Generic
-deriving via (TomlTableStripDot (FIFOSettings' f) "fifo") instance (Constraints (FIFOSettings' f) Toml.HasCodec, Typeable f) => Toml.HasCodec (FIFOSettings' f)
-deriving via (TomlTableStripDot (FIFOSettings' f) "fifo") instance (Constraints (FIFOSettings' f) Toml.HasCodec, Constraints (FIFOSettings' f) Toml.HasItemCodec, Typeable f) => Toml.HasItemCodec (FIFOSettings' f)
-deriving instance (Constraints (FIFOSettings' f) Show) => Show (FIFOSettings' f)
-deriving via (Generically (FIFOSettings' f)) instance (Constraints (FIFOSettings' f) Semigroup) => Semigroup (FIFOSettings' f)
+data FIFOSettings = FIFOSettings
+    { fifoPath  :: T.Text 
+    , fifoName :: T.Text
+    , fifoFormat :: T.Text } deriving stock Generic
+    deriving Toml.HasCodec via (TomlTableStripDot FIFOSettings "fifo")
+    deriving Toml.HasItemCodec via (TomlTableStripDot FIFOSettings "fifo")  
+    deriving Show
+    deriving Semigroup via (Generically FIFOSettings)
 
 settingsCodec :: TomlCodec PartialSettings
 settingsCodec = Toml.stripTypeNameCodec
@@ -246,12 +265,24 @@ instance GComplete (G.K1 i (Last a)) (G.K1 i a) where
     gcomplete _                    = Nothing
 instance GComplete G.U1 G.U1 where
     gcomplete G.U1 = Just G.U1
-
+instance {-# OVERLAPPING #-} GComplete (G.K1 i a) (G.K1 i a) where 
+    gcomplete (G.K1 x) = Just $ G.K1 x
 instance (GComplete a c, GComplete b d) => GComplete (a G.:*: b) (c G.:*: d) where
     gcomplete (a G.:*: b) = (G.:*:) <$> gcomplete a <*> gcomplete b
 instance Complete d => GComplete (G.K1 i (d Last)) (G.K1 i (d Identity)) where
   gcomplete (G.K1 x) = G.K1 <$> complete x
-     
+instance Complete d => GComplete (G.K1 i [d Last]) (G.K1 i [d Identity]) where
+    gcomplete (G.K1 x) = 
+        let 
+            
+            halfList = map complete x
+             
+        in 
+            if isJust (find isNothing halfList) then 
+                Nothing 
+            else 
+                Just . G.K1 $ catMaybes halfList
+             
 type Complete d = 
     ( GComplete (Rep (d Last)) (Rep (d Identity))
     , Generic (d Last)

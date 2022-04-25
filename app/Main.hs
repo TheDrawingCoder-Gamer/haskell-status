@@ -6,7 +6,7 @@ import System.Environment
 import Control.Applicative
 import Data.Functor ((<&>))
 import Data.List.Extra (trim, splitOn)
-import Data.Maybe (catMaybes, fromJust)
+import Data.Maybe (catMaybes, fromJust, fromMaybe, maybe)
 import Data.List (find)
 import Data.Bifunctor qualified as BFu
 import Data.Char (isDigit)
@@ -19,6 +19,7 @@ import Status.Plugins.MemInfo
 import Status.Plugins.WirelessInfo 
 import Status.Plugins.Clock
 import Status.Plugins.AudioInfo
+import Status.Plugins.FIFOPipe
 import Status.Config
 import Status.Units
 import Data.Concatable
@@ -28,7 +29,9 @@ import Data.String
 import Data.Text qualified as T
 import Control.Concurrent.MVar
 import Data.Bool (bool)
-import System.INotify
+import Data.HashMap.Strict qualified as HM
+import Status.Formatter
+import Data.Stringly
 main :: IO ()
 main =
     do
@@ -38,58 +41,21 @@ main =
         case config' of 
             Right config -> 
                 do
+                    let daMap = HM.fromList $ map (\v -> (toString $ fifoName v, v)) (settingsFifo config)
                     deadMansMVar <- newEmptyMVar 
-                    goodMvar <- newMVar (SysInfo "" "" "" "" "" "")
+                    goodMvar <- newMVar (SystemInfo Nothing Nothing Nothing Nothing Nothing Nothing (HM.map (const "") daMap))
                     forkFinally (timerThread config goodMvar) (\_ -> putMVar deadMansMVar ())
-                    
-                    forkIO (watchFIFO config goodMvar (\conf mvar d ->
-                        do 
-                            foo@(SysInfo mmem mcpu mbat mwi mclc maux) <- takeMVar mvar
-                            putMVar foo
-                        ))
+                    forkIO (forever $ setupFIFOs config goodMvar) 
                     takeMVar deadMansMVar
             Left config -> 
                 print config
-formatGeneral :: F.Format -> SysInfo -> String
-formatGeneral format (SysInfo meminfo cpuinfo batteryinfo wirelessinfo clockinfo audioinfo) = 
-    format 
-    ~~ ("cpu" ~% cpuinfo) 
-    ~~ ("memory" ~% meminfo) 
-    ~~ ("battery" ~% batteryinfo) 
-    ~~ ("wireless" ~% wirelessinfo) 
-    ~~ ("clock" ~% clockinfo) 
-    ~~ ("audio" ~% audioinfo)
-
-data SysInfo = SysInfo String String String String String String
-data SysInfoMask = SysInfoMask Bool Bool Bool Bool Bool Bool
-printInfo :: Settings -> MVar SysInfo -> SysInfoMask -> IO ()
-printInfo config mvar (SysInfoMask bmem bcpu bbat bwi bclc baux) = 
-    let 
-        format = fromString (T.unpack $ settingsFormat config) 
-    in 
-        do 
-            (SysInfo mmem mcpu mbat mwi mclc maux) <- takeMVar mvar
-            meminfo <- bool (memUsage config) (pure mmem) bmem
-            cpuinfo <- bool (cpuUsage config) (pure mcpu) bcpu
-            batteryinfo <- bool (showBatteryInfo config <$> batteryInfo config) (pure mbat) bbat
-            wirelessinfo <- bool (getDisplayWirelessInfo config) (pure mwi) bwi 
-            clockinfo <- bool (getTime config) (pure mclc) bclc  
-            audioinfo <- bool (getAudioStr config) (pure maux) baux
-            let sysinfo =  SysInfo meminfo cpuinfo batteryinfo wirelessinfo clockinfo audioinfo
-            putMVar mvar sysinfo
-            putStrLn $ formatGeneral format sysinfo 
-timerThread :: Settings -> MVar SysInfo -> IO ()
+   
+timerThread :: Settings -> MVar SystemInfo -> IO ()
 timerThread config mvar = 
     forever $ do 
-        printInfo config mvar (SysInfoMask False False False False False False)
+        printInfo config mvar (SystemMask False False False False False False HM.empty)
         threadDelay 5000000
 
-watchFile config mvar path cb = do 
-    inotify <- initINotify 
-    addWatch inotify [Modify] (fromString path) (cb config mvar)
 
-watchFIFO :: Settings -> MVar SysInfo -> Handle -> (Settings -> MVar SysInfo -> String -> IO ())
-watchFIFO config mvar handle cb = forever $ do 
-    input <- hGetContents handle 
-    cb config mvar input 
+
 
