@@ -11,7 +11,7 @@ import Data.List (find)
 import Data.Bifunctor qualified as BFu
 import Data.Char (isDigit)
 import Control.Monad (forever) 
-import Control.Concurrent (threadDelay)
+import Control.Concurrent (threadDelay, forkIO)
 import System.IO (hSetBuffering, stdout, BufferMode(LineBuffering))
 import Status.Plugins.BatteryInfo
 import Status.Plugins.CpuInfo
@@ -26,6 +26,8 @@ import Text.Format qualified as F
 import Text.Format ((~~), (~%))
 import Data.String
 import Data.Text qualified as T
+import Control.Concurrent.MVar
+import Data.Bool (bool)
 main :: IO ()
 main =
     do
@@ -35,9 +37,9 @@ main =
         case config' of 
             Right config -> 
                 do 
-                    forever $ do 
-                        printInfo config
-                        threadDelay 5000000
+                    goodMvar <- newMVar (SysInfo "" "" "" "" "" "")
+                    forkIO (timerThread config goodMvar)
+                    pure ()
             Left config -> 
                 print config
 formatGeneral :: F.Format -> String -> String -> String -> String -> String -> String -> String
@@ -50,16 +52,26 @@ formatGeneral format cpuinfo meminfo batteryinfo wirelessinfo clockinfo audioinf
     ~~ ("clock" ~% clockinfo) 
     ~~ ("audio" ~% audioinfo)
 
-printInfo config = 
+data SysInfo = SysInfo String String String String String String
+data SysInfoMask = SysInfoMask Bool Bool Bool Bool Bool Bool
+printInfo :: Settings -> MVar SysInfo -> SysInfoMask -> IO ()
+printInfo config mvar (SysInfoMask bmem bcpu bbat bwi bclc baux) = 
     let 
         format = fromString (T.unpack $ settingsFormat config) 
     in 
         do 
-            meminfo <- memUsage config
-            cpuinfo <- cpuUsage config
-            batteryinfo <- showBatteryInfo config <$> batteryInfo config
-            wirelessinfo <- getDisplayWirelessInfo config 
-            clockinfo <- getTime config 
-            audioinfo <- getAudioStr config  
+            (SysInfo mmem mcpu mbat mwi mclc maux) <- takeMVar mvar
+            meminfo <- bool (memUsage config) (pure mmem) bmem
+            cpuinfo <- bool (cpuUsage config) (pure mcpu) bcpu
+            batteryinfo <- bool (showBatteryInfo config <$> batteryInfo config) (pure mbat) bbat
+            wirelessinfo <- bool (getDisplayWirelessInfo config) (pure mwi) bwi 
+            clockinfo <- bool (getTime config) (pure mclc) bclc  
+            audioinfo <- bool (getAudioStr config) (pure maux) baux
+            putMVar mvar (SysInfo meminfo cpuinfo batteryinfo wirelessinfo clockinfo audioinfo) 
             putStrLn $ formatGeneral format cpuinfo meminfo batteryinfo wirelessinfo clockinfo audioinfo 
+timerThread :: Settings -> MVar SysInfo -> IO ()
+timerThread config mvar = 
+    forever $ do 
+        printInfo config mvar (SysInfoMask False False False False False False)
+        threadDelay 5000000
 
