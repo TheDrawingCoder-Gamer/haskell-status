@@ -75,7 +75,6 @@ data Settings' f = Settings
     , settingsWireless :: !(WirelessSettings' f)
     , settingsClock :: !(ClockSettings f)
     , settingsAudio :: !(AudioSettings' f)
-    , settingsFifo :: ![FIFOSettings]
     } deriving Generic
 deriving via (Generically (Settings' f)) instance (Constraints (Settings' f) Semigroup) => Semigroup (Settings' f)
 deriving instance (Constraints (Settings' f) Show) => Show (Settings' f)
@@ -151,15 +150,6 @@ deriving instance (Constraints (AudioSettings' f) Show) => Show (AudioSettings' 
 
 type AudioSettings = AudioSettings' Identity 
 type PartialAudioSettings = AudioSettings' Last
-
-data FIFOSettings = FIFOSettings
-    { fifoPath  :: T.Text 
-    , fifoName :: T.Text
-    , fifoFormat :: T.Text } deriving stock Generic
-    deriving Toml.HasCodec via (TomlTableStripDot FIFOSettings "fifo")
-    deriving Toml.HasItemCodec via (TomlTableStripDot FIFOSettings "fifo")  
-    deriving Show
-    deriving Semigroup via (Generically FIFOSettings)
 
 settingsCodec :: TomlCodec PartialSettings
 settingsCodec = Toml.stripTypeNameCodec

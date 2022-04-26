@@ -19,7 +19,6 @@ import Status.Plugins.MemInfo
 import Status.Plugins.WirelessInfo 
 import Status.Plugins.Clock
 import Status.Plugins.AudioInfo
-import Status.Plugins.FIFOPipe
 import Status.Config
 import Status.Units
 import Data.Concatable
@@ -41,11 +40,9 @@ main =
         case config' of 
             Right config -> 
                 do
-                    let daMap = HM.fromList $ map (\v -> (toString $ fifoName v, v)) (settingsFifo config)
                     deadMansMVar <- newEmptyMVar 
-                    goodMvar <- newMVar (SystemInfo Nothing Nothing Nothing Nothing Nothing Nothing (HM.map (const "") daMap))
+                    goodMvar <- newMVar (SystemInfo Nothing Nothing Nothing Nothing Nothing Nothing HM.empty)
                     forkFinally (timerThread config goodMvar) (\_ -> putMVar deadMansMVar ())
-                    forkIO (forever $ setupFIFOs config goodMvar) 
                     takeMVar deadMansMVar
             Left config -> 
                 print config

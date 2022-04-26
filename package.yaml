@@ -76,3 +76,4 @@ executables:
       - hinotify 
       - unordered-containers
       - async
+      - dbus

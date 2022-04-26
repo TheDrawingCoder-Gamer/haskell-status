@@ -36,7 +36,6 @@ executable haskell-status-exe
       Status.Plugins.BatteryInfo
       Status.Plugins.Clock
       Status.Plugins.CpuInfo
-      Status.Plugins.FIFOPipe
       Status.Plugins.MemInfo
       Status.Plugins.WirelessInfo
       Status.Units
@@ -69,6 +68,7 @@ executable haskell-status-exe
     , bytestring
     , cereal >=0.5.8.0
     , containers
+    , dbus
     , directory
     , extra
     , generic-data
