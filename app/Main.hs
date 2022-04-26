@@ -31,6 +31,7 @@ import Data.Bool (bool)
 import Data.HashMap.Strict qualified as HM
 import Status.Formatter
 import Data.Stringly
+import Status.Plugins.DBusInfo
 main :: IO ()
 main =
     do
@@ -41,8 +42,9 @@ main =
             Right config -> 
                 do
                     deadMansMVar <- newEmptyMVar 
-                    goodMvar <- newMVar (SystemInfo Nothing Nothing Nothing Nothing Nothing Nothing HM.empty)
+                    goodMvar <- newMVar (SystemInfo Nothing Nothing Nothing Nothing Nothing Nothing (emptyMap config))
                     forkFinally (timerThread config goodMvar) (\_ -> putMVar deadMansMVar ())
+                    forkIO (setupClients config goodMvar )
                     takeMVar deadMansMVar
             Left config -> 
                 print config

@@ -57,7 +57,7 @@ data SystemInfo = SystemInfo
     , sysinfWireless :: Maybe String
     , sysinfClock    :: Maybe String 
     , sysinfAudio    :: Maybe String 
-    , sysinfFifo     :: HM.HashMap String String
+    , sysinfDbus     :: HM.HashMap String String
     } 
 data SystemMask = SystemMask 
     { sysmaskBattery  :: Bool 
@@ -66,7 +66,7 @@ data SystemMask = SystemMask
     , sysmaskWireless :: Bool 
     , sysmaskClock    :: Bool 
     , sysmaskAudio    :: Bool 
-    , sysmaskFifo     :: HM.HashMap String Bool }
+    , sysmaskDBus     :: HM.HashMap String Bool }
 data Settings' f = Settings
     { settingsFormat :: HKD f T.Text
     , settingsBattery :: !(BatterySettings' f)
@@ -75,6 +75,7 @@ data Settings' f = Settings
     , settingsWireless :: !(WirelessSettings' f)
     , settingsClock :: !(ClockSettings f)
     , settingsAudio :: !(AudioSettings' f)
+    , settingsDbus  :: ![DBusSettings]
     } deriving Generic
 deriving via (Generically (Settings' f)) instance (Constraints (Settings' f) Semigroup) => Semigroup (Settings' f)
 deriving instance (Constraints (Settings' f) Show) => Show (Settings' f)
@@ -151,6 +152,14 @@ deriving instance (Constraints (AudioSettings' f) Show) => Show (AudioSettings' 
 type AudioSettings = AudioSettings' Identity 
 type PartialAudioSettings = AudioSettings' Last
 
+data DBusSettings = DBusSettings 
+    { dbusFormat  :: T.Text 
+    , dbusName    :: T.Text 
+    , dbusDefault :: Maybe T.Text} 
+    deriving stock Generic
+    deriving Show
+    deriving Toml.HasCodec via TomlTableStripDot DBusSettings "dbus"
+    deriving Toml.HasItemCodec via TomlTableStripDot DBusSettings "dbus" 
 settingsCodec :: TomlCodec PartialSettings
 settingsCodec = Toml.stripTypeNameCodec
 
