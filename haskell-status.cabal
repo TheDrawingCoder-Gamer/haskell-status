@@ -30,11 +30,13 @@ executable haskell-status-exe
       Data.Stringly
       Status.Config
       Status.Format
+      Status.Formatter
       Status.Helpers
       Status.Plugins.AudioInfo
       Status.Plugins.BatteryInfo
       Status.Plugins.Clock
       Status.Plugins.CpuInfo
+      Status.Plugins.DBusInfo
       Status.Plugins.MemInfo
       Status.Plugins.WirelessInfo
       Status.Units
@@ -62,14 +64,17 @@ executable haskell-status-exe
   build-depends:
       aeson
     , ansi-terminal
+    , async
     , base >=4.7 && <5
     , bytestring
     , cereal >=0.5.8.0
     , containers
+    , dbus
     , directory
     , extra
     , generic-data
     , hformat
+    , hinotify
     , lens
     , netlink >=1.1.1.0
     , network-info
@@ -83,4 +88,5 @@ executable haskell-status-exe
     , tomland
     , transformers
     , unix
+    , unordered-containers
   default-language: Haskell2010

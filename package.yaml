@@ -73,3 +73,7 @@ executables:
       - polysemy
       - lens
       - aeson
+      - hinotify 
+      - unordered-containers
+      - async
+      - dbus
