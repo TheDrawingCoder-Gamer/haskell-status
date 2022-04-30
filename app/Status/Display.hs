@@ -8,11 +8,12 @@ import Data.Maybe (fromMaybe, mapMaybe)
 import Data.HashMap.Strict qualified as HM
 import Data.Text.IO qualified as T (putStrLn)
 import Control.Applicative ((<|>))
+import Data.Monoid (Any(..))
 class Processor a where 
     process :: a -> IO Block
 
 processFilledFormat :: T.Text -> FormatSettings' Identity -> Block
-processFilledFormat str FormatSettings{formatColor=color, formatMarkup=markup} = 
+processFilledFormat str FormatSettings{formatColor=color, formatMarkup=(Any markup)} = 
     Block str color markup
 
 maybeBlock :: Maybe Block -> Block 
@@ -26,13 +27,11 @@ displaySysinfo Settings{settingsBlocks, settingsMode} sysinfo =
     in
         T.putStrLn $ displayBlocks settingsMode betterBlocks
         
-setupDisplay I3Bar = setupDisplay Swaybar
 setupDisplay Swaybar = 
     Swaybar.setupDisplay
 setupDisplay Plain = 
     Plain.setupDisplay
 
-displayBlocks I3Bar = Swaybar.displayBlocks 
 displayBlocks Swaybar = Swaybar.displayBlocks 
 displayBlocks Plain = Plain.displayBlocks
 

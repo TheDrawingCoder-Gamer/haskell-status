@@ -128,14 +128,12 @@ formatSeconds sec =
     CF.formatTime CF.defaultTimeLocale "%h:%0M:%0S" (fromIntegral sec :: Clock.DiffTime) 
 instance Processor BatterySettings where 
     process a@BatterySettings{
-                batteryFormat=FormatSettings
-                    {formatColor=colorGood},
-                batteryFormatDown=FormatSettings 
-                    {formatColor=colorBad}}= 
+                batteryFormat,
+                batteryFormatDown}= 
         do  
             info <- fetchBatteryInfo a
             pure $ case info of
                 Left x -> 
-                    (x, colorBad) 
+                    processFilledFormat x batteryFormatDown
                 Right x -> 
-                    (x, colorGood ) 
+                    processFilledFormat x batteryFormat

@@ -81,19 +81,18 @@ type PartialSysMask = SystemMask' Maybe
 type SystemMask     = SystemMask' Identity
 newtype JustLast a = JustLast {getJustLast :: a }
     deriving newtype Toml.HasCodec
+    deriving Show
 instance Semigroup (JustLast a) where 
    _ <> b = b 
 data DisplayMode 
     = Plain 
-    | Swaybar 
-    | I3Bar 
+    | Swaybar deriving Show 
 showDisplayMode Plain = "plain" 
 showDisplayMode Swaybar = "swaybar" 
-showDisplayMode I3Bar = "i3bar" 
 
 parseDisplayMode "plain" = Right Plain 
 parseDisplayMode "swaybar" = Right Swaybar 
-parseDisplayMode "i3bar" = Right I3Bar 
+parseDisplayMode "i3bar" = Right Swaybar 
 parseDisplayMode _      = Left "failed parse display mode"
 instance Toml.HasCodec DisplayMode where 
     hasCodec = Toml.textBy showDisplayMode parseDisplayMode 
@@ -192,21 +191,22 @@ type PartialAudioSettings = AudioSettings' Last
 newtype DefaultString a = DefaultString {unDefault :: Maybe String }
     deriving newtype Show
 
-
+newtype DefaultText a = DefaultText {unDefaultTxt :: Maybe T.Text} 
+    deriving newtype Show
 
 data DBusSettings 
     = DBusSettingsMethod
-    { dbusFormat  :: String
-    , dbusName    :: String
-    , dbusDefault :: Maybe String
-    , dbusAddress :: DefaultString "session" 
+    { dbusFormat  :: FormatSettings' Identity
+    , dbusName    :: T.Text
+    , dbusDefault :: Maybe T.Text
+    , dbusAddress :: DefaultText "session" 
     }
     | DBusSettingsSignal 
-    { dbusFormat :: String
-    , dbusName   :: String 
-    , dbusPath   :: String
-    , dbusSignal :: String
-    , dbusAddress :: DefaultString "session"
+    { dbusFormat :: FormatSettings' Identity
+    , dbusName   :: T.Text 
+    , dbusPath   :: T.Text
+    , dbusSignal :: T.Text
+    , dbusAddress :: DefaultText "session"
     }
     deriving stock Generic
     deriving Show
@@ -219,21 +219,21 @@ matchDbusSignal _                      = Nothing
 dbusCodec = 
     Toml.dimatch matchDbusMethod id
             ( DBusSettingsMethod 
-            <$> Toml.string "format" .= dbusFormat 
-            <*> Toml.string "name"    .= dbusName 
-            <*> Toml.dioptional (Toml.string "default") .= dbusDefault
-            <*> Toml.diwrap (Toml.dioptional (Toml.string "address")) .= dbusAddress
+            <$> Toml.hasCodec "format"    .= dbusFormat 
+            <*> Toml.text "name"    .= dbusName 
+            <*> Toml.dioptional (Toml.text "default") .= dbusDefault
+            <*> Toml.diwrap (Toml.dioptional (Toml.text "address")) .= dbusAddress
             )
         <|> 
         Toml.dimatch matchDbusSignal id
             ( DBusSettingsSignal
-            <$> Toml.string "format"      .= dbusFormat
-            <*> Toml.string "name"        .= dbusName
-            <*> Toml.string "path"        .= dbusPath
-            <*> Toml.string "signal"      .= dbusSignal
-            <*> Toml.diwrap (Toml.dioptional (Toml.string "address")) .= dbusAddress
+            <$> Toml.hasCodec "format"      .= dbusFormat
+            <*> Toml.text "name"        .= dbusName
+            <*> Toml.text "path"        .= dbusPath
+            <*> Toml.text "signal"      .= dbusSignal
+            <*> Toml.diwrap (Toml.dioptional (Toml.text "address")) .= dbusAddress
             )
-data Color = Color { red :: Int, green :: Int, blue :: Int } 
+data Color = Color { red :: Int, green :: Int, blue :: Int } deriving stock Show 
 parseColor :: P.ReadP Color 
 parseColor = do 
     P.char '#' 
@@ -253,7 +253,7 @@ instance Toml.HasCodec Color where
 data FormatSettings' f = FormatSettings 
     { formatText :: HKD f T.Text 
     , formatColor :: HKD f (Maybe Color) 
-    , formatMarkup :: HKD f Bool }
+    , formatMarkup :: HKD f Any }
     deriving stock Generic 
 deriving via (Generically (FormatSettings' f)) instance (Constraints (FormatSettings' f) Semigroup) => Semigroup (FormatSettings' f)
 deriving instance (Constraints (FormatSettings' f) Show) => Show (FormatSettings' f)
@@ -407,6 +407,9 @@ instance KnownSymbol s => GComplete (G.K1 i (DefaultString s)) (G.K1 i String) w
     gcomplete (G.K1 (DefaultString (Just x))) = Just $ G.K1 x
     gcomplete _                               = Just . G.K1 $ symbolVal (Proxy @s)
 
+instance KnownSymbol s => GComplete (G.K1 i (DefaultText s)) (G.K1 i T.Text) where 
+    gcomplete (G.K1 (DefaultText (Just x))) = Just $ G.K1 x
+    gcomplete _                               = Just . G.K1 . T.pack $ symbolVal (Proxy @s)
 class Complete d a where 
     complete :: d a -> Maybe (d Identity)
 class CompleteInstance (d :: (Type -> Type) -> Type) 
@@ -414,5 +417,5 @@ instance (GComplete (Rep (d a)) (Rep (d Identity)), Generic (d a), Generic (d Id
     complete = fmap G.to . gcomplete . G.from
 instance {-# OVERLAPPING #-} Complete FormatSettings' Last where 
     complete (FormatSettings (Last (Just x)) (Last (Just y)) (Last (Just z))) = Just $ FormatSettings x y z 
-    complete (FormatSettings (Last (Just x)) (Last (Just y)) _              ) = Just $ FormatSettings x y False
+    complete (FormatSettings (Last (Just x)) (Last (Just y)) _              ) = Just $ FormatSettings x y (Any False)
     complete _                                                                = Nothing

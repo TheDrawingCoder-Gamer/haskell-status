@@ -26,6 +26,7 @@ import Status.Config
 import Data.List (find)
 import Data.List.Extra (trim)
 import Data.Text qualified as T
+import Data.Monoid (Any(..))
 import Network.Info qualified as NI
 import Status.Display 
 getName :: IO String 
@@ -106,8 +107,8 @@ displayWireless
 
 instance Processor WirelessSettings where 
     process conf@WirelessSettings
-            {wiFormat=FormatSettings{formatColor=uColor, formatMarkup=uMarkup}
-            ,wiFormatDown=FormatSettings{formatColor=dColor, formatMarkup=dMarkup}} = do
+            {wiFormat=FormatSettings{formatColor=uColor, formatMarkup=(Any uMarkup)}
+            ,wiFormatDown=FormatSettings{formatColor=dColor, formatMarkup=(Any dMarkup)}} = do
         daText <- getDisplayWirelessInfo conf
         pure $ case daText of 
             Left x -> 

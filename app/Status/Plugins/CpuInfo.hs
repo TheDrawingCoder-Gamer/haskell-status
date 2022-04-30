@@ -29,6 +29,6 @@ displayCpu CpuSettings{cpuFormat=FormatSettings{formatText=fmat}} usage =
     
 instance Processor CPUSettings where 
     process conf@CpuSettings{cpuFormat} = do 
-        name <- cpuUsage conf 
+        name <- displayCpu conf <$> cpuUsage conf 
         pure $ processFilledFormat (T.pack name) cpuFormat 
     

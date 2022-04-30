@@ -29,9 +29,9 @@ import Data.Text qualified as T
 import Control.Concurrent.MVar
 import Data.Bool (bool)
 import Data.HashMap.Strict qualified as HM
-import Status.Formatter
 import Data.Stringly
 import Status.Plugins.DBusInfo
+import Status.Display
 main :: IO ()
 main =
     do
@@ -41,18 +41,32 @@ main =
         case config' of 
             Right config -> 
                 do
-                    deadMansMVar <- newEmptyMVar 
-                    goodMvar <- newMVar (SystemInfo Nothing Nothing Nothing Nothing Nothing Nothing (emptyMap config))
-                    forkFinally (timerThread config goodMvar) (\_ -> putMVar deadMansMVar ())
-                    forkIO (setupClients config goodMvar )
+                    deadMansMVar <- newEmptyMVar
+                    setupDisplay (settingsMode config) 
+                    forkFinally (timerThread config) (\_ -> putMVar deadMansMVar ())
+                    forkIO (setupClients config )
                     takeMVar deadMansMVar
             Left config -> 
-                print config
-   
-timerThread :: Settings -> MVar SystemInfo -> IO ()
-timerThread config mvar = 
+                print config 
+timerThread :: Settings -> IO ()
+timerThread c@Settings{..} = 
     forever $ do 
-        printInfo config mvar (SystemMask False False False False False False HM.empty)
+        sysinfo <- takeMVar sysinfoMvar 
+        batt <- process settingsBattery 
+        cpu  <- process settingsCpu 
+        mem  <- process settingsMemory 
+        wireless <- process settingsWireless 
+        clock <- process settingsClock 
+        audio <- process settingsAudio 
+        let sysinfo' = HM.unionWith (const id) sysinfo (HM.fromList [
+                    ("battery", batt), 
+                    ("cpu", cpu),
+                    ("memory", mem),
+                    ("wireless", wireless),
+                    ("clock", clock),
+                    ("audio", audio)])
+        displaySysinfo c sysinfo' 
+        putMVar sysinfoMvar sysinfo' 
         threadDelay 5000000
 
 

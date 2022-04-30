@@ -3,13 +3,13 @@ module Status.Display.Swaybar (setupDisplay, displayBlock, displayBlocks) where
 import Status.Config
 import Data.Text qualified as T 
 setupDisplay = do 
-    putStrLn "{ \"version\": 1 }"
+    putStrLn "{ \"version\": 1 }\n"
     putStrLn "[" 
 
 displayBlock :: Block -> T.Text 
 displayBlock Block{blockColor=color, blockFullText=text, blockMarkup=markup} = 
 
-    "{ \"full_text\": \"" <> text <> fancyColor <> fancyColor <> "\"}"
+    "{ \"full_text\": \"" <> text <> "\"" <> fancyColor <> fancyMarkup <> "}"
     where 
         fancyColor = 
             case color of 

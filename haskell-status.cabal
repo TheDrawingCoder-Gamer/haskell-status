@@ -28,12 +28,12 @@ executable haskell-status-exe
   other-modules:
       Data.Concatable
       Data.Stringly
+      Data.Text.IsText
       Status.Config
       Status.Display
       Status.Display.Plain
       Status.Display.Swaybar
       Status.Format
-      Status.Formatter
       Status.Helpers
       Status.Plugins.AudioInfo
       Status.Plugins.BatteryInfo

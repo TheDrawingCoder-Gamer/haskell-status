@@ -18,6 +18,7 @@ import Data.String
 import Data.Functor.Identity
 import Text.Format ((~~), (~%))
 import Text.Format qualified as F
+import Status.Display
 data MemoryInfo = MemoryInfo
     { memTotal     :: First Int
     , memFree      :: First Int 
@@ -67,10 +68,10 @@ emptyMemInfo =
         nils = First Nothing 
     in 
     MemoryInfo nils nils nils nils nils nils nils nils
-memUsage :: MemorySettings -> IO String 
+memUsage :: MemorySettings -> IO T.Text
 memUsage config = 
     displayMem config <$> memInfo 
-displayMem :: MemorySettings -> MemoryInfo -> String
+displayMem :: MemorySettings -> MemoryInfo -> T.Text
 displayMem MemorySettings
                 {..} 
            daInfo@MemoryInfo
@@ -96,7 +97,7 @@ displayMem MemorySettings
                     usedPerc = roundTo memPrecision $ (fromIntegral used' / fromIntegral total) * 100
                     freePerc = roundTo memPrecision $ (fromIntegral free / fromIntegral total) * 100
                 in
-                fromString (T.unpack formatText) 
+                T.pack $ fromString (T.unpack formatText) 
                 ~~ ("free" ~% showPris freeB)
                 ~~ ("available" ~% showPris availB)
                 ~~ ("used" ~% showPris usedB) 
@@ -165,3 +166,9 @@ calcSwapAvailable memInfo =
     in 
         free' + cache'
 
+instance Processor MemorySettings where 
+    process conf@MemorySettings{memFormat} = do 
+        memTxt <- memUsage conf 
+        pure $ processFilledFormat memTxt memFormat
+
+        

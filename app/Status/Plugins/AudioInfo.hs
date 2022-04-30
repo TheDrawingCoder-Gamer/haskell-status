@@ -44,9 +44,9 @@ getAudioStr AudioSettings{
 
 instance Processor AudioSettings where 
     process conf@AudioSettings {
-        audioFormat=FormatSettings{formatColor=color}
-       ,audioFormatMuted=FormatSettings{formatColor=colorMuted}} = do 
+        audioFormat
+       ,audioFormatMuted} = do 
         info <- getAudioStr conf 
         pure $ case info of 
-            Left x -> (x, colorMuted)
-            Right x -> (x, color)
+            Left x -> processFilledFormat x audioFormatMuted
+            Right x -> processFilledFormat x audioFormat
