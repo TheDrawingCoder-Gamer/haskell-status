@@ -50,6 +50,7 @@ executables:
     - TypeApplications
     - TypeOperators
     - TypeFamilies
+    - FlexibleInstances
     dependencies: 
       - process
       - extra

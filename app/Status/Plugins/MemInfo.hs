@@ -67,15 +67,12 @@ emptyMemInfo =
         nils = First Nothing 
     in 
     MemoryInfo nils nils nils nils nils nils nils nils
-memUsage :: Settings -> IO String 
+memUsage :: MemorySettings -> IO String 
 memUsage config = 
     displayMem config <$> memInfo 
-displayMem :: Settings -> MemoryInfo -> String
-displayMem Settings{
-            settingsMemory=
-                MemorySettings
-                {..}
-            } 
+displayMem :: MemorySettings -> MemoryInfo -> String
+displayMem MemorySettings
+                {..} 
            daInfo@MemoryInfo
             {memFree=First (Just free)
             ,memTotal=First (Just total)
@@ -84,6 +81,7 @@ displayMem Settings{
             } 
             = 
                 let 
+                    FormatSettings{..} = memFormat
                     showPris = showBytes memPrecision    
                     convertUnit = flip convertBytes memUnit 
                     used' = calcUsed daInfo memCalcMethod
@@ -98,7 +96,7 @@ displayMem Settings{
                     usedPerc = roundTo memPrecision $ (fromIntegral used' / fromIntegral total) * 100
                     freePerc = roundTo memPrecision $ (fromIntegral free / fromIntegral total) * 100
                 in
-                fromString (T.unpack memFormat) 
+                fromString (T.unpack formatText) 
                 ~~ ("free" ~% showPris freeB)
                 ~~ ("available" ~% showPris availB)
                 ~~ ("used" ~% showPris usedB) 

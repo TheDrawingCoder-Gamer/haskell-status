@@ -29,6 +29,9 @@ executable haskell-status-exe
       Data.Concatable
       Data.Stringly
       Status.Config
+      Status.Display
+      Status.Display.Plain
+      Status.Display.Swaybar
       Status.Format
       Status.Formatter
       Status.Helpers
@@ -60,6 +63,7 @@ executable haskell-status-exe
       TypeApplications
       TypeOperators
       TypeFamilies
+      FlexibleInstances
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson

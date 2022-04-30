@@ -9,6 +9,7 @@ import Data.Text qualified as T
 import Control.Lens.Tuple
 import Control.Lens (set, view)
 import System.Exit
+import Status.Display
 data AudioInfo = AudioInfo 
     { audioVolume :: Int
     , audioMute   :: Bool } 
@@ -26,16 +27,26 @@ parseExoticBool _       = error "parseExoticBool: no parse"
 showMuted :: Bool -> String
 showMuted True = "muted" 
 showMuted False = "unmuted"
-getAudioStr :: Settings -> IO String 
-getAudioStr Settings{settingsAudio=AudioSettings{audioFormat, audioFormatMuted}} = do
+getAudioStr :: AudioSettings -> IO (Either T.Text T.Text) 
+getAudioStr AudioSettings{
+        audioFormat=FormatSettings{formatText=format}, 
+        audioFormatMuted=FormatSettings{formatText=formatMuted}} = do
     info <- getAudioInfo
     let volStr = show (audioVolume info) ++ "%"
     pure $  if audioMute info then 
-                fromString (T.unpack audioFormatMuted)
+                Left . fromString $ fromString (T.unpack formatMuted)
                     ~~ ("volume" ~% volStr) 
                     ~~ ("muted"  ~% showMuted True) 
             else 
-                fromString (T.unpack audioFormat) 
+                Right . fromString $ fromString (T.unpack format) 
                     ~~ ("volume" ~% volStr) 
                     ~~ ("muted"  ~% showMuted False)
-    
+
+instance Processor AudioSettings where 
+    process conf@AudioSettings {
+        audioFormat=FormatSettings{formatColor=color}
+       ,audioFormatMuted=FormatSettings{formatColor=colorMuted}} = do 
+        info <- getAudioStr conf 
+        pure $ case info of 
+            Left x -> (x, colorMuted)
+            Right x -> (x, color)

@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances #-}
 module Status.Plugins.BatteryInfo (BatteryInfo(..), BatteryState(..), batteryInfo, showBatteryInfo, fetchBatteryInfo, estimateSecondsRemaining) where 
 
 import Data.List 
@@ -16,7 +17,9 @@ import Data.Monoid (Last(..))
 import Data.Functor.Identity 
 import Data.Text.IO qualified as TIO
 import Data.Time.Clock qualified as Clock 
-import Data.Time.Format qualified as CF 
+import Data.Time.Format qualified as CF
+import Status.Display 
+import Data.Functor ((<&>))
 data BatteryState = Discharging | Charging | Full | Unknown deriving Show 
 
 parseBatteryState = \case 
@@ -36,10 +39,10 @@ data BatteryInfo = BatteryInfo
     ,bCapacity :: Maybe Float 
     ,bStatus :: BatteryState 
     } deriving Show
-batteryInfo :: Settings -> IO BatteryInfo
+batteryInfo :: BatterySettings -> IO BatteryInfo
 batteryInfo config = do 
     let 
-        path = batteryPath $ settingsBattery config
+        path = batteryPath config
         statusPrefix = "POWER_SUPPLY_STATUS=" 
         remainingPrefixWatt = "POWER_SUPPLY_ENERGY_NOW=" 
         remainingPrefixAmp  = "POWER_SUPPLY_CHARGE_NOW="
@@ -77,13 +80,14 @@ batteryInfo config = do
         findAndDropPrefix str daData = drop (length str) <$> find (isPrefixOf str) daData
         findDropRead str daData = read <$> findAndDropPrefix str daData
         ampToWatt voltage current = round $ (fromIntegral voltage / 1000) * (fromIntegral current / 1000)
-showBatteryInfo :: Settings -> BatteryInfo -> String
-showBatteryInfo config@Settings{
-        settingsBattery=BatterySettings
+showBatteryInfo :: BatterySettings -> BatteryInfo -> Either T.Text T.Text
+showBatteryInfo config@(BatterySettings
             {batteryUselast=useLast
-            ,batteryFormatDown=unknownText
+            ,batteryFormatDown=FormatSettings{formatText=unknownText}
             ,batteryFormatPrecision=precision 
-            ,batteryFormat=formatConf}}
+            ,batteryFormat=FormatSettings{
+               formatText=formatConf
+            }})
         (BatteryInfo fullDesign lastFull remaining presentRate rawSecondsRem rawCapacity status) =  
     let
         full = biasedAlt useLast fullDesign lastFull
@@ -93,24 +97,24 @@ showBatteryInfo config@Settings{
     in 
         -- this was busted because remaining wasn't right var
         case (full, secondsRem, capacity) of 
-            (Nothing, Nothing, Nothing) -> T.unpack unknownText
-            _ -> T.unpack $ batteryDisplay config capacity status secondsRem
+            (Nothing, Nothing, Nothing) -> Left unknownText
+            _ -> Right $ batteryDisplay config capacity status secondsRem
 
 fetchBatteryInfo config = showBatteryInfo config <$> batteryInfo config
 
 biasedAlt True  l r = r <|> l 
 biasedAlt False l r = l <|> r
 
-displayStatus config Charging    = batteryStatusCharging   $ settingsBattery config 
-displayStatus config Discharging = batteryStatusDischarging $ settingsBattery config 
-displayStatus config Full        = batteryStatusFull      $ settingsBattery config
-displayStatus config Unknown     = batteryStatusUnknown       $ settingsBattery config
+displayStatus config Charging    = batteryStatusCharging    config 
+displayStatus config Discharging = batteryStatusDischarging config 
+displayStatus config Full        = batteryStatusFull        config
+displayStatus config Unknown     = batteryStatusUnknown     config
 
-batteryDisplay :: Settings -> Maybe Float -> BatteryState -> Maybe Int -> T.Text
-batteryDisplay config@Settings{settingsBattery=BatterySettings
-                                {batteryFormat=daFormat 
+batteryDisplay :: BatterySettings -> Maybe Float -> BatteryState -> Maybe Int -> T.Text
+batteryDisplay config@BatterySettings
+                                {batteryFormat=FormatSettings{formatText=daFormat} 
                                 ,batteryFormatPrecision=precision
-                                }} percentage status remaining =  
+                                } percentage status remaining =  
     fromString (T.unpack daFormat) ~~ ("percentage" ~% (maybe "??" (show . roundTo precision) percentage ++ "%")) ~~ ("status" ~% displayStatus config status) ~~ ("remaining" ~% maybe "XX:XX" formatSeconds remaining)
 
 estimateSecondsRemaining :: Maybe Int -> Maybe Int -> Maybe Int -> BatteryState -> Maybe Int
@@ -121,4 +125,17 @@ estimateSecondsRemaining (Just presentRate) _ (Just rem) Discharging =
 estimateSecondsRemaining _ _ _ _ = Nothing
 
 formatSeconds sec = 
-    CF.formatTime CF.defaultTimeLocale "%h:%0M:%0S" (fromIntegral sec :: Clock.DiffTime)  
+    CF.formatTime CF.defaultTimeLocale "%h:%0M:%0S" (fromIntegral sec :: Clock.DiffTime) 
+instance Processor BatterySettings where 
+    process a@BatterySettings{
+                batteryFormat=FormatSettings
+                    {formatColor=colorGood},
+                batteryFormatDown=FormatSettings 
+                    {formatColor=colorBad}}= 
+        do  
+            info <- fetchBatteryInfo a
+            pure $ case info of
+                Left x -> 
+                    (x, colorBad) 
+                Right x -> 
+                    (x, colorGood ) 

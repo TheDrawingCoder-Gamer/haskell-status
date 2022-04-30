@@ -10,20 +10,25 @@ import Text.Format qualified as F
 import Text.Format ((~~), (~%)) 
 import Data.String
 import Data.Text qualified as T
+import Status.Display
 data CPUInfo = CPUInfo 
     { cpuUser :: First Int 
     , cpuNice :: First Int 
     , cpuSystem :: First Int 
     , cpuIdle :: First Int } 
-cpuUsage :: Settings -> IO String 
-cpuUsage config@Settings{settingsCpu=CpuSettings{cpuFormatPrecision=precision}} = 
+cpuUsage :: CPUSettings -> IO String 
+cpuUsage config@CpuSettings{cpuFormatPrecision=precision} = 
     do 
         daData <- map read . take 4 . tail . words . head . lines <$> readFile "/proc/stat" :: IO [Int] 
         let (curUsage, idleUsage) = BFu.bimap sum head $ splitAt 3 daData 
         let percentage = show (roundTo precision $ (*100) $ fromIntegral curUsage / fromIntegral idleUsage) ++ "%"
         pure $ displayCpu config percentage
-displayCpu :: Settings -> String -> String 
-displayCpu Settings{settingsCpu=CpuSettings{cpuFormat}} usage =
-    fromString (T.unpack cpuFormat) ~~ ("usage" ~% usage)
-     
+displayCpu :: CPUSettings -> String -> String 
+displayCpu CpuSettings{cpuFormat=FormatSettings{formatText=fmat}} usage =
+    fromString (T.unpack fmat) ~~ ("usage" ~% usage)
+    
+instance Processor CPUSettings where 
+    process conf@CpuSettings{cpuFormat} = do 
+        name <- cpuUsage conf 
+        pure $ processFilledFormat (T.pack name) cpuFormat 
     

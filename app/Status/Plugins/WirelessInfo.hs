@@ -16,7 +16,7 @@ import Data.Serialize.Get (runGet)
 import Data.Serialize.Put (runPut, putWord32host, putByteString)
 import Control.Monad.IO.Class
 import System.Posix.IO (closeFd)
-import Data.Maybe (listToMaybe, fromMaybe, maybe)
+import Data.Maybe (listToMaybe, fromMaybe, maybe, isJust)
 import Data.Functor((<&>))
 import Data.String
 import Text.Format qualified as F 
@@ -26,7 +26,8 @@ import Status.Config
 import Data.List (find)
 import Data.List.Extra (trim)
 import Data.Text qualified as T
-import Network.Info qualified as NI 
+import Network.Info qualified as NI
+import Status.Display 
 getName :: IO String 
 getName = 
     trim <$> P.readProcess "iwgetid" ["-r"] []
@@ -68,10 +69,12 @@ getNetworkData ifname =
     where 
         rightToMaybe = either (const Nothing) Just
      
-getDisplayWirelessInfo :: Settings -> IO String
-getDisplayWirelessInfo config@Settings{settingsWireless=WirelessSettings{wiInterface}} = do 
+getDisplayWirelessInfo :: WirelessSettings -> IO (Either T.Text T.Text)
+getDisplayWirelessInfo config@WirelessSettings{wiInterface} = do 
     daData <- getNetworkData wiInterface
-    pure . T.unpack $ displayWireless config daData 
+    let 
+        wrapper = if isJust daData then Right else Left
+    pure . wrapper $ displayWireless config daData 
 xbmToPercent =
     let 
         spanning = 70
@@ -83,13 +86,13 @@ xbmToPercent =
         
 headMaybe [] = Nothing 
 headMaybe (x:xs) = Just x
-displayWireless :: Settings -> Maybe NetworkInfo -> T.Text
-displayWireless Settings{settingsWireless=WirelessSettings{wiFormatDown}} Nothing = wiFormatDown
+displayWireless :: WirelessSettings -> Maybe NetworkInfo -> T.Text
+displayWireless WirelessSettings{wiFormatDown=FormatSettings{formatText}} Nothing = formatText
 displayWireless 
-    Settings {settingsWireless=WirelessSettings
-                {wiFormat=format
-                ,wiPrecision=precision} 
-             } 
+    WirelessSettings
+        {wiFormat=FormatSettings{formatText=format}
+        ,wiPrecision=precision} 
+             
     (Just (NetworkInfo {wiSsid=ssid 
                 ,wiQlty=qlty 
                 ,wiIpv4=ipv4
@@ -100,3 +103,15 @@ displayWireless
      ~~ ("ssid"     ~% ssid)
      ~~ ("ip"       ~% show ipv4)
      ~~ ("ipv6"     ~% show ipv6)
+
+instance Processor WirelessSettings where 
+    process conf@WirelessSettings
+            {wiFormat=FormatSettings{formatColor=uColor, formatMarkup=uMarkup}
+            ,wiFormatDown=FormatSettings{formatColor=dColor, formatMarkup=dMarkup}} = do
+        daText <- getDisplayWirelessInfo conf
+        pure $ case daText of 
+            Left x -> 
+                Block x dColor dMarkup 
+            Right x -> 
+                Block x uColor uMarkup
+        
