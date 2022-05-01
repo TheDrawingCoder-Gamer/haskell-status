@@ -199,40 +199,57 @@ data DBusSettings
     { dbusFormat  :: FormatSettings' Identity
     , dbusName    :: T.Text
     , dbusDefault :: Maybe T.Text
-    , dbusAddress :: DefaultText "session" 
+    , dbusAddress :: T.Text 
     }
     | DBusSettingsSignal 
     { dbusFormat :: FormatSettings' Identity
     , dbusName   :: T.Text 
     , dbusPath   :: T.Text
+    , dbusObjpath :: T.Text
     , dbusSignal :: T.Text
-    , dbusAddress :: DefaultText "session"
+    , dbusUpdate :: [T.Text]
+    , dbusAddress :: T.Text
     }
     deriving stock Generic
     deriving Show
+
+dimonoidoptional :: (Monoid m) => Toml.TomlCodec m -> Toml.TomlCodec m
+dimonoidoptional Toml.Codec{..} = Toml.Codec 
+    { codecRead = codecRead Toml.<!> \_ -> pure mempty
+    , codecWrite = codecWrite 
+    }
+didefault :: Toml.TomlCodec a -> a -> Toml.TomlCodec a 
+didefault Toml.Codec{..} def = Toml.Codec 
+    { codecRead = codecRead Toml.<!> const (pure def) 
+    , codecWrite = codecWrite }
 matchDbusMethod s@(DBusSettingsMethod{}) = Just s
 matchDbusMethod _                      = Nothing 
 
 matchDbusSignal s@(DBusSettingsSignal{}) = Just s
 matchDbusSignal _                      = Nothing
 
-dbusCodec = 
-    Toml.dimatch matchDbusMethod id
-            ( DBusSettingsMethod 
-            <$> Toml.hasCodec "format"    .= dbusFormat 
-            <*> Toml.text "name"    .= dbusName 
-            <*> Toml.dioptional (Toml.text "default") .= dbusDefault
-            <*> Toml.diwrap (Toml.dioptional (Toml.text "address")) .= dbusAddress
-            )
-        <|> 
+voidDbus :: DBusSettings -> T.Text
+voidDbus _ = "void"
+dbusCodec =  
         Toml.dimatch matchDbusSignal id
-            ( DBusSettingsSignal
+            ( Toml.table (DBusSettingsSignal
             <$> Toml.hasCodec "format"      .= dbusFormat
             <*> Toml.text "name"        .= dbusName
             <*> Toml.text "path"        .= dbusPath
+            <*> Toml.text "objpath" .= dbusObjpath
             <*> Toml.text "signal"      .= dbusSignal
-            <*> Toml.diwrap (Toml.dioptional (Toml.text "address")) .= dbusAddress
+            <*> dimonoidoptional (Toml.arrayOf Toml._Text "update") .= dbusUpdate
+            <*> didefault (Toml.text "address") "session" .= dbusAddress) "signal"
             )
+    <|>
+        Toml.dimatch matchDbusMethod id
+            ( Toml.table (DBusSettingsMethod 
+            <$> Toml.hasCodec "format"    .= dbusFormat 
+            <*> Toml.text "name"    .= dbusName 
+            <*> Toml.dioptional (Toml.text "default") .= dbusDefault
+            <*> didefault (Toml.text "address") "session" .= dbusAddress) "method"
+            )
+
 data Color = Color { red :: Int, green :: Int, blue :: Int } deriving stock Show 
 parseColor :: P.ReadP Color 
 parseColor = do 
