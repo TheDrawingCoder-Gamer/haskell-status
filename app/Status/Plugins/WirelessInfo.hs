@@ -107,8 +107,8 @@ displayWireless
 
 instance Processor WirelessSettings where 
     process conf@WirelessSettings
-            {wiFormat=FormatSettings{formatColor=uColor, formatMarkup=(Any uMarkup)}
-            ,wiFormatDown=FormatSettings{formatColor=dColor, formatMarkup=(Any dMarkup)}} = do
+            {wiFormat=FormatSettings{formatColor=uColor, formatMarkup=uMarkup}
+            ,wiFormatDown=FormatSettings{formatColor=dColor, formatMarkup=dMarkup}} = do
         daText <- getDisplayWirelessInfo conf
         pure $ case daText of 
             Left x -> 

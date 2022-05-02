@@ -13,7 +13,7 @@ class Processor a where
     process :: a -> IO Block
 
 processFilledFormat :: T.Text -> FormatSettings' Identity -> Block
-processFilledFormat str FormatSettings{formatColor=color, formatMarkup=(Any markup)} = 
+processFilledFormat str FormatSettings{formatColor=color, formatMarkup=markup} = 
     Block str color markup
 
 maybeBlock :: Maybe Block -> Block 

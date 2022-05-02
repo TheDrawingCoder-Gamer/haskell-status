@@ -16,6 +16,7 @@ import DBus.Internal.Types (showValue, varToVal, )
 import Data.Text qualified as T
 import Data.Text.IsText qualified as T
 import Status.Display
+import Data.Maybe (isJust, fromJust)
 import Data.Monoid (Any(..))
 import Status.Plugins.WirelessInfo ()
 import Status.Plugins.BatteryInfo () 
@@ -28,7 +29,7 @@ import DBus.Internal.Address (parseAddress)
 sysinfoMvar :: MVar C.SystemInfo
 sysinfoMvar = unsafePerformIO (newMVar HM.empty)
 setupClient :: C.Settings -> C.DBusSettings -> IO ()
-setupClient settings C.DBusSettingsMethod{dbusName=name, dbusFormat=C.FormatSettings{formatText=format, formatColor=color, formatMarkup=(Any markup)}, dbusAddress} = do
+setupClient settings C.DBusSettingsMethod{dbusName=name, dbusFormat, dbusAddress} = do
     client <- connectSpecial dbusAddress
     let goodName = "org.bulby.HaskellStatus." <> name  
     nameStatus <- requestName client (T.fromText goodName) [nameDoNotQueue] 
@@ -47,15 +48,17 @@ setupClient settings C.DBusSettingsMethod{dbusName=name, dbusFormat=C.FormatSett
     callback :: String -> IO () 
     callback input = do 
         sysinfo <- takeMVar sysinfoMvar 
-        let sysinfo' = HM.insert name 
-                (C.Block{
-                blockFullText = T.pack (fromString (T.unpack format) ~~ input),
-                blockColor    = color ,
-                blockMarkup   = markup
-                }) sysinfo      
+        let 
+            sysinfo' = if isJust dbusFormat then
+                let C.FormatSettings{..} = fromJust dbusFormat in
+                HM.insert name (C.Block{
+                    blockFullText = T.pack (fromString (T.unpack formatText) ~~ input),
+                    blockColor    = formatColor ,
+                    blockMarkup   = formatMarkup
+                    }) sysinfo  else sysinfo 
         displaySysinfo settings sysinfo'
         putMVar sysinfoMvar sysinfo'
-setupClient settings C.DBusSettingsSignal{dbusPath=path, dbusSignal=signal, dbusFormat=C.FormatSettings{..}, dbusName = name, dbusObjpath, dbusAddress, dbusUpdate} = do 
+setupClient settings C.DBusSettingsSignal{dbusPath=path, dbusSignal=signal, dbusFormat, dbusName = name, dbusObjpath, dbusAddress, dbusUpdate} = do 
     let matchRule = matchAny  { matchInterface = Just $ T.fromText path, matchMember = Just $ T.fromText signal, matchPath = Just $ T.fromText dbusObjpath}
     
     client <- connectSpecial dbusAddress
@@ -68,14 +71,16 @@ setupClient settings C.DBusSettingsSignal{dbusPath=path, dbusSignal=signal, dbus
             pure () 
         else do 
             sysinfo <- takeMVar sysinfoMvar 
-
-            sysinfo' <- updateSysinfo settings dbusUpdate $ HM.insert name C.Block 
-                    {C.blockFullText=T.fromText formatText ~~ showValue True (varToVal (head body))
-                    ,C.blockColor=formatColor 
-                    ,C.blockMarkup=getAny formatMarkup} sysinfo 
-            displaySysinfo settings sysinfo' 
+            let sysinfo' = if isJust dbusFormat then 
+                            let C.FormatSettings{..} = fromJust dbusFormat in
+                            HM.insert name C.Block {blockFullText = T.fromText formatText ~~ showValue True (varToVal (head body))
+                                    ,blockColor    = formatColor 
+                                    ,blockMarkup   = formatMarkup} sysinfo 
+                            else sysinfo
+            sysinfo'' <- updateSysinfo settings dbusUpdate sysinfo' 
+            displaySysinfo settings sysinfo''
             
-            putMVar sysinfoMvar sysinfo'
+            putMVar sysinfoMvar sysinfo''
 connectSpecial :: T.Text -> IO  Client
 connectSpecial addr = 
     case addr of 

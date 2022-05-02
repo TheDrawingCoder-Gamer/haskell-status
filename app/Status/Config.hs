@@ -105,7 +105,7 @@ data Settings' f = Settings
     , settingsWireless :: !(WirelessSettings' f)
     , settingsClock :: !(ClockSettings f)
     , settingsAudio :: !(AudioSettings' f)
-    , settingsDbus  :: ![DBusSettings]
+    , settingsDbus  :: ![DBusSettings' f]
     } deriving stock Generic
       deriving anyclass CompleteInstance
 deriving via (Generically (Settings' f)) instance (Constraints (Settings' f) Semigroup) => Semigroup (Settings' f)
@@ -126,7 +126,7 @@ data BatterySettings' f  = BatterySettings {
   deriving anyclass CompleteInstance
 deriving instance (Constraints (BatterySettings' f) Show) => Show (BatterySettings' f) 
 deriving via (Generically (BatterySettings' f)) instance (Constraints (BatterySettings' f ) Semigroup ) => Semigroup (BatterySettings' f)
-deriving via (TomlTableStripDot (BatterySettings' f) "battery") instance (Constraints (BatterySettings' f) Toml.HasCodec, Typeable f) => Toml.HasCodec (BatterySettings' f)  
+deriving via (TomlTableStripPrefix (BatterySettings' f) "battery") instance (Constraints (BatterySettings' f) Toml.HasCodec, Typeable f) => Toml.HasCodec (BatterySettings' f)  
 type BatterySettings = BatterySettings' Identity 
 type PartialBatterySettings = BatterySettings' Last
 
@@ -137,7 +137,7 @@ data CpuSettings' f = CpuSettings {
   deriving anyclass CompleteInstance
 deriving via (Generically (CpuSettings' f)) instance (Constraints (CpuSettings' f) Semigroup) => Semigroup (CpuSettings' f)
 deriving instance (Constraints (CpuSettings' f) Show) => Show (CpuSettings' f)
-deriving via (TomlTableStripDot (CpuSettings' f) "cpu") instance (Constraints (CpuSettings' f) Toml.HasCodec, Typeable f) => Toml.HasCodec (CpuSettings' f)  
+deriving via (TomlTableStripPrefix (CpuSettings' f) "cpu") instance (Constraints (CpuSettings' f) Toml.HasCodec, Typeable f) => Toml.HasCodec (CpuSettings' f)  
 type CPUSettings = CpuSettings' Identity 
 type PartialCPUSettings = CpuSettings' Last
 data MemorySettings' f  = MemorySettings {
@@ -149,7 +149,7 @@ data MemorySettings' f  = MemorySettings {
   deriving anyclass CompleteInstance
 deriving via (Generically (MemorySettings' f)) instance (Constraints (MemorySettings' f) Semigroup) => Semigroup (MemorySettings' f)
 deriving instance (Constraints (MemorySettings' f) Show) => Show (MemorySettings' f)
-deriving via (TomlTableStripDot (MemorySettings' f) "mem") instance (Constraints (MemorySettings' f) Toml.HasCodec, Typeable f) => Toml.HasCodec (MemorySettings' f)  
+deriving via (TomlTableStripPrefix (MemorySettings' f) "mem") instance (Constraints (MemorySettings' f) Toml.HasCodec, Typeable f) => Toml.HasCodec (MemorySettings' f)  
 type MemorySettings = MemorySettings' Identity 
 type PartialMemorySettings =  MemorySettings' Last 
     
@@ -162,7 +162,7 @@ data WirelessSettings' f = WirelessSettings
       deriving anyclass CompleteInstance
 deriving via (Generically (WirelessSettings' f)) instance (Constraints (WirelessSettings' f) Semigroup) => Semigroup (WirelessSettings' f)
 deriving instance (Constraints (WirelessSettings' f) Show) => Show (WirelessSettings' f) 
-deriving via (TomlTableStripDot (WirelessSettings' f) "wi") instance (Constraints (WirelessSettings' f) Toml.HasCodec, Typeable f) => Toml.HasCodec (WirelessSettings' f)
+deriving via (TomlTableStripPrefix (WirelessSettings' f) "wi") instance (Constraints (WirelessSettings' f) Toml.HasCodec, Typeable f) => Toml.HasCodec (WirelessSettings' f)
 type WirelessSettings = WirelessSettings' Identity 
 type PartialWirelessSettings = WirelessSettings' Last
 
@@ -170,7 +170,7 @@ newtype ClockSettings f = ClockSettings
     { clockFormat :: FormatSettings' f }
     deriving stock Generic
     deriving anyclass CompleteInstance 
-deriving via (TomlTableStripDot (ClockSettings f) "clock") instance (Constraints (ClockSettings f) Toml.HasCodec, Typeable f) => Toml.HasCodec (ClockSettings f)
+deriving via (TomlTableStripPrefix (ClockSettings f) "clock") instance (Constraints (ClockSettings f) Toml.HasCodec, Typeable f) => Toml.HasCodec (ClockSettings f)
 deriving via (Generically (ClockSettings f)) instance (Constraints (ClockSettings f) Semigroup) => Semigroup (ClockSettings f)
 deriving instance (Constraints (ClockSettings f) Show) => Show (ClockSettings f) 
 type CClockSettings = ClockSettings Identity 
@@ -181,7 +181,7 @@ data AudioSettings' f = AudioSettings
     , audioFormatMuted :: FormatSettings' f } 
     deriving stock Generic 
     deriving anyclass CompleteInstance
-deriving via (TomlTableStripDot (AudioSettings' f) "audio") instance (Constraints (AudioSettings' f) Toml.HasCodec, Typeable f) => Toml.HasCodec (AudioSettings' f) 
+deriving via (TomlTableStripPrefix (AudioSettings' f) "audio") instance (Constraints (AudioSettings' f) Toml.HasCodec, Typeable f) => Toml.HasCodec (AudioSettings' f) 
 deriving via (Generically (AudioSettings' f)) instance (Constraints (AudioSettings' f) Semigroup) => Semigroup (AudioSettings' f)
 deriving instance (Constraints (AudioSettings' f) Show) => Show (AudioSettings' f)
 
@@ -194,15 +194,15 @@ newtype DefaultString a = DefaultString {unDefault :: Maybe String }
 newtype DefaultText a = DefaultText {unDefaultTxt :: Maybe T.Text} 
     deriving newtype Show
 
-data DBusSettings 
+data DBusSettings' f 
     = DBusSettingsMethod
-    { dbusFormat  :: FormatSettings' Identity
+    { dbusFormat  :: Maybe (FormatSettings' f)
     , dbusName    :: T.Text
     , dbusDefault :: Maybe T.Text
     , dbusAddress :: T.Text 
     }
     | DBusSettingsSignal 
-    { dbusFormat :: FormatSettings' Identity
+    { dbusFormat :: Maybe (FormatSettings' f)
     , dbusName   :: T.Text 
     , dbusPath   :: T.Text
     , dbusObjpath :: T.Text
@@ -211,8 +211,9 @@ data DBusSettings
     , dbusAddress :: T.Text
     }
     deriving stock Generic
-    deriving Show
-
+    deriving anyclass CompleteInstance
+deriving instance (Constraints (DBusSettings' f) Show) => Show (DBusSettings' f)
+type DBusSettings = DBusSettings' Identity
 dimonoidoptional :: (Monoid m) => Toml.TomlCodec m -> Toml.TomlCodec m
 dimonoidoptional Toml.Codec{..} = Toml.Codec 
     { codecRead = codecRead Toml.<!> \_ -> pure mempty
@@ -228,28 +229,28 @@ matchDbusMethod _                      = Nothing
 matchDbusSignal s@(DBusSettingsSignal{}) = Just s
 matchDbusSignal _                      = Nothing
 
-voidDbus :: DBusSettings -> T.Text
-voidDbus _ = "void"
+dbusSignalCodec :: forall (a :: Type -> Type). (Typeable a, Constraints (FormatSettings' a) Toml.HasCodec) => Toml.TomlCodec (DBusSettings' a)
+dbusSignalCodec = DBusSettingsSignal 
+    <$> Toml.table (Toml.dioptional $ prefixStripperCodec (Proxy @"format") :: Toml.TomlCodec (Maybe (FormatSettings' a))) "format" .= dbusFormat 
+    <*> Toml.text     "name"   .= dbusName 
+    <*> Toml.text "path" .= dbusPath 
+    <*> Toml.text "objpath" .= dbusObjpath 
+    <*> Toml.text  "signal" .= dbusSignal
+    <*> dimonoidoptional (Toml.arrayOf Toml._Text "update") .= dbusUpdate
+    <*> didefault (Toml.text "address") "session" .= dbusAddress
+
+dbusMethodCodec :: forall (a :: Type -> Type). (Typeable a, Constraints (FormatSettings' a) Toml.HasCodec) => Toml.TomlCodec (DBusSettings' a)
+dbusMethodCodec = DBusSettingsMethod 
+    <$> Toml.table (Toml.dioptional $ prefixStripperCodec (Proxy @"format") :: Toml.TomlCodec (Maybe (FormatSettings' a))) "format" .= dbusFormat 
+    <*> Toml.text "name" .= dbusName 
+    <*> Toml.dioptional (Toml.text "default") .= dbusDefault 
+    <*> didefault (Toml.text "address") "session" .= dbusAddress
+dbusCodec :: (Typeable f, Constraints (FormatSettings' f) Toml.HasCodec) => Toml.TomlCodec (DBusSettings' f)
 dbusCodec =  
         Toml.dimatch matchDbusSignal id
-            ( Toml.table (DBusSettingsSignal
-            <$> Toml.hasCodec "format"      .= dbusFormat
-            <*> Toml.text "name"        .= dbusName
-            <*> Toml.text "path"        .= dbusPath
-            <*> Toml.text "objpath" .= dbusObjpath
-            <*> Toml.text "signal"      .= dbusSignal
-            <*> dimonoidoptional (Toml.arrayOf Toml._Text "update") .= dbusUpdate
-            <*> didefault (Toml.text "address") "session" .= dbusAddress) "signal"
-            )
+            ( Toml.table dbusSignalCodec "signal" )
     <|>
-        Toml.dimatch matchDbusMethod id
-            ( Toml.table (DBusSettingsMethod 
-            <$> Toml.hasCodec "format"    .= dbusFormat 
-            <*> Toml.text "name"    .= dbusName 
-            <*> Toml.dioptional (Toml.text "default") .= dbusDefault
-            <*> didefault (Toml.text "address") "session" .= dbusAddress) "method"
-            )
-
+        Toml.dimatch matchDbusMethod id (Toml.table dbusMethodCodec "method")
 data Color = Color { red :: Int, green :: Int, blue :: Int } deriving stock Show 
 parseColor :: P.ReadP Color 
 parseColor = do 
@@ -269,21 +270,23 @@ instance Toml.HasCodec Color where
     hasCodec = Toml.textBy showColor parseColorToml 
 data FormatSettings' f = FormatSettings 
     { formatText :: HKD f T.Text 
-    , formatColor :: HKD f (Maybe Color) 
-    , formatMarkup :: HKD f Any }
-    deriving stock Generic 
+    , formatColor :: Maybe Color 
+    , formatMarkup :: HKDIf f Any Bool }
+    deriving stock Generic
+    deriving anyclass CompleteInstance 
 deriving via (Generically (FormatSettings' f)) instance (Constraints (FormatSettings' f) Semigroup) => Semigroup (FormatSettings' f)
 deriving instance (Constraints (FormatSettings' f) Show) => Show (FormatSettings' f)
-deriving via (TomlTableStripDot (FormatSettings' f) "format") instance (Constraints (FormatSettings' f) Toml.HasCodec, Typeable f) => Toml.HasCodec (FormatSettings' f) 
-instance Toml.HasCodec DBusSettings where 
+deriving via (TomlTableStripPrefix (FormatSettings' f) "format") instance (Constraints (FormatSettings' f) Toml.HasCodec, Typeable f) => Toml.HasCodec (FormatSettings' f) 
+instance Toml.HasCodec (DBusSettings' Last) where 
     hasCodec = Toml.table dbusCodec
-instance Toml.HasItemCodec DBusSettings where 
+instance Toml.HasItemCodec (DBusSettings' Last) where 
     hasItemCodec = Right dbusCodec 
 newtype TString = TString { fromTString :: [Char] }
 instance Toml.HasCodec TString where
     hasCodec = Toml.diwrap . Toml.string
 instance Toml.HasItemCodec TString where 
     hasItemCodec = Left $ Toml._Coerce Toml._String
+
 settingsCodec :: TomlCodec PartialSettings
 settingsCodec = Toml.stripTypeNameCodec
 
@@ -307,7 +310,7 @@ calcMethCodec = Toml.textBy showCalcMeth parseCalcMeth
 
 completeSettings :: PartialSettings -> Either PartialSettings Settings 
 completeSettings input = 
-        case complete input of 
+        case ncomplete input of 
             Just c -> 
                 Right c
             _ -> Left input
@@ -324,16 +327,21 @@ type family HKD f a where
     HKD f a = f a 
 type family HKDEither f a b where 
     HKDEither Identity a b = b
-    HKDEither f a b = f a  
+    HKDEither f a b = f a 
+type family HKDIf c a b where 
+    HKDIf Identity a b = b 
+    HKDIf _ a b = a
 newtype TomlTableStripPrefix a (s :: Symbol) = TomlTableStripPrefix 
     { unTomlTableStripPrefix :: a } 
-newtype TomlTableStripDot a (s :: Symbol) = TomlTableStripDot {unTomlTableStripDot :: a}
+-- newtype TomlTableStripDot a (s :: Symbol) = TomlTableStripDot {unTomlTableStripDot :: a}
 instance (Generic a, Toml.GenericCodec (Rep a), KnownSymbol s, Typeable a) => Toml.HasCodec (TomlTableStripPrefix a s) where 
     hasCodec = Toml.diwrap . Toml.table (prefixStripperCodec (Proxy @s) :: Toml.TomlCodec a)
-instance (Generic a, Toml.GenericCodec (Rep a), KnownSymbol s, Typeable a) => Toml.HasCodec (TomlTableStripDot a s) where 
-    hasCodec = Toml.diwrap . Toml.table (dotPrefixStripCodec (Proxy @s) ::Toml.TomlCodec a)
-instance (Generic a, Toml.GenericCodec (Rep a), KnownSymbol s, Typeable a) => Toml.HasItemCodec (TomlTableStripDot a s) where 
-    hasItemCodec = Right $ Toml.diwrap (dotPrefixStripCodec (Proxy @s) :: Toml.TomlCodec a)
+instance (Generic a, Toml.GenericCodec (Rep a), KnownSymbol s, Typeable a) => Toml.HasItemCodec (TomlTableStripPrefix a s) where 
+    hasItemCodec = Right $ Toml.diwrap (prefixStripperCodec (Proxy @s) :: Toml.TomlCodec a)
+-- instance (Generic a, Toml.GenericCodec (Rep a), KnownSymbol s, Typeable a) => Toml.HasCodec (TomlTableStripDot a s) where 
+--    hasCodec = Toml.diwrap . Toml.table (dotPrefixStripCodec (Proxy @s) ::Toml.TomlCodec a)
+-- instance (Generic a, Toml.GenericCodec (Rep a), KnownSymbol s, Typeable a) => Toml.HasItemCodec (TomlTableStripDot a s) where 
+--    hasItemCodec = Right $ Toml.diwrap (dotPrefixStripCodec (Proxy @s) :: Toml.TomlCodec a)
 
 
 prefixStripper :: forall s a. (KnownSymbol s, Typeable a) => Proxy s -> Proxy a -> String -> String 
@@ -388,9 +396,6 @@ class GComplete last identity where
 instance GComplete last identity => GComplete (G.M1 i c last) (G.M1 i c identity) where
     gcomplete (G.M1 x) = G.M1 <$> gcomplete x
 
-instance GComplete (G.K1 i (Last a)) (G.K1 i a) where
-    gcomplete (G.K1 (Last (Just x))) = Just (G.K1 x)
-    gcomplete _                    = Nothing
 instance GComplete (G.K1 i (Maybe a)) (G.K1 i a) where 
     gcomplete (G.K1 (Just x)) = Just (G.K1 x) 
     gcomplete _               = Nothing
@@ -401,38 +406,42 @@ instance {-# OVERLAPPING #-} GComplete (G.K1 i a) (G.K1 i a) where
     gcomplete (G.K1 x) = Just $ G.K1 x
 instance (GComplete a c, GComplete b d) => GComplete (a G.:*: b) (c G.:*: d) where
     gcomplete (a G.:*: b) = (G.:*:) <$> gcomplete a <*> gcomplete b
-instance Complete d a => GComplete (G.K1 i (d a)) (G.K1 i (d Identity)) where 
-    gcomplete (G.K1 x) = G.K1 <$> complete x
-instance Complete d a => GComplete (G.K1 i [d a]) (G.K1 i [d Identity]) where
-    gcomplete (G.K1 x) = 
-        let 
-            
-            halfList = map complete x
-             
-        in 
-            if isJust (find isNothing halfList) then 
-                Nothing 
-            else 
-                Just . G.K1 $ catMaybes halfList
-instance GComplete  (G.K1 i Any) (G.K1 i Bool) where 
-    gcomplete (G.K1 (Any x)) = Just $ G.K1 x
+instance (GComplete a c, GComplete b d) => GComplete (a G.:+: b) (c G.:+: d) where 
+    gcomplete (G.L1 x) = G.L1 <$> gcomplete x
+    gcomplete (G.R1 x) = G.R1 <$> gcomplete x
+instance NComplete s d => GComplete (G.K1 i s) (G.K1 i d) where 
+    gcomplete (G.K1 x) = G.K1 <$> ncomplete x
 
 instance GComplete  (G.K1 i (Maybe Any)) (G.K1 i Bool) where 
     gcomplete (G.K1 (Just (Any x))) = Just $ G.K1 x
     gcomplete _                     = Nothing
-instance KnownSymbol s => GComplete (G.K1 i (DefaultString s)) (G.K1 i String) where 
-    gcomplete (G.K1 (DefaultString (Just x))) = Just $ G.K1 x
-    gcomplete _                               = Just . G.K1 $ symbolVal (Proxy @s)
-
-instance KnownSymbol s => GComplete (G.K1 i (DefaultText s)) (G.K1 i T.Text) where 
-    gcomplete (G.K1 (DefaultText (Just x))) = Just $ G.K1 x
-    gcomplete _                               = Just . G.K1 . T.pack $ symbolVal (Proxy @s)
-class Complete d a where 
-    complete :: d a -> Maybe (d Identity)
 class CompleteInstance (d :: (Type -> Type) -> Type) 
-instance (GComplete (Rep (d a)) (Rep (d Identity)), Generic (d a), Generic (d Identity), CompleteInstance d) => Complete d a where 
-    complete = fmap G.to . gcomplete . G.from
-instance {-# OVERLAPPING #-} Complete FormatSettings' Last where 
-    complete (FormatSettings (Last (Just x)) (Last (Just y)) (Last (Just z))) = Just $ FormatSettings x y z 
-    complete (FormatSettings (Last (Just x)) (Last (Just y)) _              ) = Just $ FormatSettings x y (Any False)
-    complete _                                                                = Nothing
+
+class NComplete s d where 
+    ncomplete :: s -> Maybe d
+class NCompleteInstance (d :: (Type -> Type) -> Type) (a :: (Type -> Type))
+instance CompleteInstance d => NCompleteInstance d Last
+instance (
+            NCompleteInstance d a, 
+            GComplete (Rep (d a)) (Rep (d Identity)), 
+            Generic (d a), 
+            Generic (d Identity)
+         ) => NComplete (d a) (d Identity) where 
+    ncomplete = fmap G.to . gcomplete . G.from
+instance NComplete s d => NComplete [s] [d] where
+    ncomplete = Just . mapMaybe ncomplete
+instance {-# OVERLAPS #-} NComplete s d => NComplete (Maybe s) (Maybe d) where 
+    ncomplete = fmap ncomplete
+instance KnownSymbol s => NComplete (DefaultText s) T.Text where 
+    ncomplete (DefaultText x) = x <|> Just (T.pack (symbolVal (Proxy @s)))
+instance KnownSymbol s => NComplete (DefaultString s) String where 
+    ncomplete (DefaultString x) = x <|> Just (symbolVal (Proxy @s))
+instance NComplete (Maybe Any) Bool where 
+    ncomplete (Just (Any x)) = Just x 
+    ncomplete _              = Just False
+instance NComplete Any Bool where 
+    ncomplete (Any x) = Just x
+instance {-# OVERLAPS #-} NComplete (Maybe s) s where 
+    ncomplete = id
+instance NComplete (Maybe s) d => NComplete (Last s) d where 
+    ncomplete (Last x) = ncomplete x
