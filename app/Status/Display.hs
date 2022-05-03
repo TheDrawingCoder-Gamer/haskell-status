@@ -21,7 +21,7 @@ maybeBlock = fromMaybe defaultBlock
 displaySysinfo :: Settings -> SystemInfo -> IO () 
 displaySysinfo Settings{settingsBlocks, settingsMode} sysinfo = 
     let 
-        blocks = getJustLast settingsBlocks 
+        blocks = settingsBlocks 
         betterBlocks =mapMaybe (sysinfo HM.!?) blocks 
         
     in

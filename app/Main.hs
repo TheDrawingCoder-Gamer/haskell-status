@@ -50,21 +50,10 @@ main =
                 print config 
 timerThread :: Settings -> IO ()
 timerThread c@Settings{..} = 
-    forever $ do 
+    forever $ do
         sysinfo <- takeMVar sysinfoMvar 
-        batt <- process settingsBattery 
-        cpu  <- process settingsCpu 
-        mem  <- process settingsMemory 
-        wireless <- process settingsWireless 
-        clock <- process settingsClock 
-        audio <- process settingsAudio 
-        let sysinfo' = HM.unionWith (const id) sysinfo (HM.fromList [
-                    ("battery", batt), 
-                    ("cpu", cpu),
-                    ("memory", mem),
-                    ("wireless", wireless),
-                    ("clock", clock),
-                    ("audio", audio)])
+        sysinfo' <-updateSysinfo c settingsBlocks sysinfo
+    
         displaySysinfo c sysinfo' 
         putMVar sysinfoMvar sysinfo' 
         threadDelay 5000000

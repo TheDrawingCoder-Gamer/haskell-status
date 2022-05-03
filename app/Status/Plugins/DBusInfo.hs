@@ -9,6 +9,7 @@ import Data.Stringly
 import Data.String
 import Data.Foldable (traverse_)
 import Data.List.Extra (replace)
+import Data.List (intersect)
 import Text.Format ((~~))
 import System.IO.Unsafe (unsafePerformIO)
 import DBus.Internal.Message (Signal(..))
@@ -89,7 +90,8 @@ connectSpecial addr =
         "starter" -> connectStarter 
         _         -> maybe (fail "bad address") connect (parseAddress . T.unpack $ addr)
 updateSysinfo :: C.Settings -> [T.Text] -> C.SystemInfo -> IO C.SystemInfo 
-updateSysinfo C.Settings{..} updates sysinfo = do 
+updateSysinfo C.Settings{..} updates' sysinfo = do 
+    let updates = settingsBlocks `intersect` updates'
     let doBatt = "battery" `elem` updates
         doCpu  = "cpu"     `elem` updates 
         doMem  = "memory"  `elem` updates 

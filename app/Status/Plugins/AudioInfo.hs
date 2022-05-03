@@ -13,10 +13,9 @@ import Status.Display
 data AudioInfo = AudioInfo 
     { audioVolume :: Int
     , audioMute   :: Bool } 
-
 getAudioInfo :: IO AudioInfo 
 getAudioInfo = do 
-    vol <- read @Int . trim <$> readProcess "pamixer" ["--get-volume"] []
+    vol <- read @Int . trim . view _2 <$> readProcessWithExitCode "pamixer" ["--get-volume"] []
     muted <-  (==ExitSuccess) . view _1 <$> readProcessWithExitCode "pamixer" ["--get-mute"] []
     pure $ AudioInfo vol muted 
 

@@ -10,28 +10,7 @@
 ,GeneralizedNewtypeDeriving
 ,DeriveAnyClass
  #-}
-module Status.Config {- (
-    PartialSettings(..),
-    Settings(..), 
-    BatterySettings'(..), 
-    BatterySettings, 
-    PartialBatterySettings,
-    CpuSettings'(..), 
-    CPUSettings, 
-    PartialCPUSettings,
-    MemoryCalcMethod(..), 
-    MemorySettings'(..),
-    MemorySettings,
-    PartialMemorySettings,
-    WirelessSettings'(..), 
-    WirelessSettings, 
-    PartialWirelessSettings, 
-    ClockSettings(..),
-    CClockSettings, 
-    PartialClockSettings,
-    getConfig,
-    completeSettings,
-    ) -}where 
+module Status.Config where 
 
 import Toml (TomlCodec, (.=))
 import Status.Units
@@ -97,7 +76,7 @@ parseDisplayMode _      = Left "failed parse display mode"
 instance Toml.HasCodec DisplayMode where 
     hasCodec = Toml.textBy showDisplayMode parseDisplayMode 
 data Settings' f = Settings
-    { settingsBlocks :: !(JustLast [T.Text])
+    { settingsBlocks :: HKDIf f (JustLast [T.Text]) [T.Text]
     , settingsMode   :: !(HKD f DisplayMode)
     , settingsBattery :: !(BatterySettings' f)
     , settingsCpu :: !(CpuSettings' f) 
@@ -441,6 +420,8 @@ instance NComplete (Maybe Any) Bool where
     ncomplete _              = Just False
 instance NComplete Any Bool where 
     ncomplete (Any x) = Just x
+instance NComplete (JustLast x) x where 
+    ncomplete (JustLast x) = Just x
 instance {-# OVERLAPS #-} NComplete (Maybe s) s where 
     ncomplete = id
 instance NComplete (Maybe s) d => NComplete (Last s) d where 
