@@ -7,21 +7,24 @@ import Text.Format ((~~), (~%))
 import Data.String
 import Data.Text qualified as T
 import Control.Lens.Tuple
-import Control.Lens (set, view)
+import Control.Lens (set, view, (%~))
 import System.Exit
 import Status.Display
+import Control.Lens qualified as L
+import Control.Monad.Representable.State
+import Data.Functor ((<&>))
+import System.Audio.Pulse
 data AudioInfo = AudioInfo 
     { audioVolume :: Int
     , audioMute   :: Bool } 
 getAudioInfo :: IO AudioInfo 
 getAudioInfo = do 
-    vol <- read @Int . trim . view _2 <$> readProcessWithExitCode "pamixer" ["--get-volume"] []
-    muted <-  (==ExitSuccess) . view _1 <$> readProcessWithExitCode "pamixer" ["--get-mute"] []
-    pure $ AudioInfo vol muted 
+    pulse <- connectPulse "haskellstatus" 
+    dev   <- pulseDefaultSink pulse 
+    AudioInfo
+        <$> deviceVolumePercent dev 
+        <*> deviceMute dev 
 
-parseExoticBool "true" = True 
-parseExoticBool "false" = False 
-parseExoticBool _       = error "parseExoticBool: no parse"
 
 showMuted :: Bool -> String
 showMuted True = "muted" 

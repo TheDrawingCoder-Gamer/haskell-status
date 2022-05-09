@@ -37,6 +37,8 @@ extra-deps:
 - selective-0.4.2@sha256:d223434ba4545a09b02dbdc7a4d63bd41ef40cc3d3d82883ccc6daea9d2b2dd5,3507
 - netlink-1.1.1.0@sha256:d83424b5ba9921191449e4b1f53c7cba7f4375f2c55a9b737c77e982e1f40d00,3689
 - string-convert-4.0.0.1@sha256:601a753c3761a4e41bf5944236a811ea133e5abef3502ecc49e2ee2e8834acbd,1271  
+- git: https://github.com/TheDrawingCoder-Gamer/hpamixer.git
+  commit: 11b150277c17a22e6cbbe52c4e0f8b9d51d2723a
 # Dependency packages to be pulled from upstream that are not in the resolver.
 # These entries can reference officially published versions as well as
 # forks / in-progress versions pinned to a git hash. For example:
